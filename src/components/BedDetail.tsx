@@ -26,46 +26,46 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
   const bedPlants = plants.slice(0, bedId === "1" ? 4 : bedId === "2" ? 3 : 2);
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3 sm:space-x-4">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={onBack}
-          className="glass-button"
+          className="glass-button h-8 w-8 sm:h-10 sm:w-10"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground">
             {bedNames[bedId as keyof typeof bedNames]}
           </h1>
-          <p className="text-foreground-secondary">{bedPlants.length} roślin w grządce</p>
+          <p className="text-sm sm:text-base text-foreground-secondary">{bedPlants.length} roślin w grządce</p>
         </div>
       </div>
 
       {/* Plants List */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Rośliny</h2>
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className="text-base sm:text-lg font-semibold text-foreground">Rośliny</h2>
         <div className="space-y-3">
           {bedPlants.map((plant) => (
             <Card 
               key={plant.id} 
-              className="glass-card glass-hover cursor-pointer"
+              className="glass rounded-xl p-3 sm:p-6 glass-hover cursor-pointer"
               onClick={() => onPlantSelect(plant.id)}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="text-3xl">{plant.name.split(' ')[0]}</div>
-                  <div>
-                    <h3 className="font-medium text-foreground">{plant.name}</h3>
-                    <Badge variant="secondary" className="glass text-emerald border-emerald/30">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="text-2xl sm:text-3xl flex-shrink-0">{plant.name.split(' ')[0]}</div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm sm:text-base font-medium text-foreground">{plant.name}</h3>
+                    <Badge variant="secondary" className="glass text-emerald border-emerald/30 text-xs">
                       {plant.phase}
                     </Badge>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-foreground-secondary" />
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-foreground-secondary flex-shrink-0" />
               </div>
             </Card>
           ))}
