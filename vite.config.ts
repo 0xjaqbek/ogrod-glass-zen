@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: process.env.NODE_ENV === "production" ? "/ogrod-glass-zen/" : "/",
+  base: mode === "production" ? "/ogrod-glass-zen/" : "/",
   server: {
     host: "::",
     port: 8080,
