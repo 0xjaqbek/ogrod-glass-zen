@@ -2,95 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Ogród App - Dark Glassmorphism Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark mode glassmorphism color system */
+    --background: 225 25% 8%; /* #0f1419 */
+    --background-secondary: 220 15% 15%; /* #1a1f2e */
+    --background-tertiary: 215 12% 22%; /* #2d3748 */
+    --foreground: 214 32% 91%; /* #e2e8f0 */
+    --foreground-secondary: 212 12% 63%; /* #a0aec0 */
+    --foreground-muted: 218 11% 65%; /* #cbd5e0 */
+    
+    /* Glassmorphism surfaces */
+    --glass: 0 0% 100% / 0.1; /* rgba(255,255,255,0.1) */
+    --glass-border: 0 0% 100% / 0.15; /* rgba(255,255,255,0.15) */
+    --glass-hover: 0 0% 100% / 0.15; /* rgba(255,255,255,0.15) */
+    
+    /* Emerald accent colors */
+    --emerald: 142 76% 36%; /* #22c55e */
+    --emerald-glow: 142 76% 36% / 0.8; /* rgba(34,197,94,0.8) */
+    --emerald-light: 142 69% 58%; /* #4ade80 */
+    
+    /* Gradients */
+    --gradient-bg: linear-gradient(135deg, hsl(225, 25%, 8%) 0%, hsl(220, 15%, 15%) 50%, hsl(215, 12%, 22%) 100%);
+    --gradient-glass: linear-gradient(145deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+    --gradient-emerald: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 69%, 58%) 100%);
+    
+    /* Shadows and glows */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-emerald: 0 0 20px rgba(34, 197, 94, 0.3);
+    --glow-emerald: 0 0 40px rgba(34, 197, 94, 0.2);
+    
+    /* Component tokens */
+    --card: var(--glass);
+    --card-foreground: var(--foreground);
+    --primary: var(--emerald);
+    --primary-foreground: 0 0% 100%;
+    --secondary: var(--glass);
+    --secondary-foreground: var(--foreground);
+    --muted: var(--glass);
+    --muted-foreground: var(--foreground-secondary);
+    --accent: var(--emerald);
+    --accent-foreground: 0 0% 100%;
+    --border: var(--glass-border);
+    --input: var(--glass);
+    --ring: var(--emerald);
+    --radius: 0.75rem;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    /* Animation timings */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
@@ -98,8 +62,84 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background: var(--gradient-bg);
+    min-height: 100vh;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Glassmorphism base classes */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .glass-hover {
+    transition: var(--transition-smooth);
+  }
+  
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .glass-card {
+    @apply glass rounded-xl p-6;
+  }
+  
+  .glass-button {
+    @apply glass glass-hover rounded-lg px-4 py-2 text-sm font-medium;
+  }
+  
+  /* Emerald glow effects */
+  .emerald-glow {
+    box-shadow: var(--shadow-emerald);
+  }
+  
+  .emerald-glow-strong {
+    box-shadow: var(--glow-emerald);
+  }
+  
+  /* Text hierarchy */
+  .text-primary {
+    color: hsl(var(--foreground));
+  }
+  
+  .text-secondary {
+    color: hsl(var(--foreground-secondary));
+  }
+  
+  .text-muted {
+    color: hsl(var(--foreground-muted));
+  }
+  
+  /* Custom scrollbar for webkit browsers */
+  .scrollbar-glass::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-glass::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-glass::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-glass::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 }
