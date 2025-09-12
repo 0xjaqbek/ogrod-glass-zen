@@ -82,8 +82,8 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            Dzień dobry! 🌱
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            Dzień dobry! <Sprout className="h-5 w-5 sm:h-6 sm:w-6 text-emerald" />
           </h1>
           <p className="text-sm sm:text-base text-foreground-secondary">
             {state.gardens.length === 0 

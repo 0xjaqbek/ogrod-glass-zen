@@ -134,6 +134,15 @@ const Layout = () => {
     return 'dashboard';
   };
 
+  useEffect(() => {
+    // Choose ONE of these:
+    // document.body.classList.add('bg-gradient-animated'); // ✨ Most Dynamic!
+    // document.body.classList.add('bg-gradient-mesh');     // 🎨 Complex
+     document.body.classList.add('bg-gradient-aurora');   // 🌈 Flowing
+    // document.body.classList.add('bg-gradient-depth');    // 🌊 Layered
+  }, []);
+
+
   const activeTab = getActiveTab(location.pathname);
 
   return (
