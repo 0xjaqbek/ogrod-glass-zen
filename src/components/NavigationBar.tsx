@@ -108,7 +108,7 @@ const NavigationBar = ({ activeTab }: NavigationBarProps) => {
                     </Badge>
                   )}
                 </div>
-                <span className="text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-none">
+                <span className="text-[10px] sm:text-xs font-medium truncate max-w-[80px] sm:max-w-none">
                   {tab.label}
                 </span>
               </button>
