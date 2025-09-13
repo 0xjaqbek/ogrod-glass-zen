@@ -167,7 +167,7 @@ const Layout = () => {
   return (
     <div className="min-h-screen">
       {/* Main Content */}
-      <main className="pb-16 sm:pb-24">
+      <main className="pb-20">
         <Outlet />
       </main>
 

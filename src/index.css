@@ -221,7 +221,7 @@
     @apply antialiased;
     background: var(--gradient-bg);
     color: hsl(var(--foreground));
-    min-height: 100dvh; /* Use dynamic viewport height */
+    min-height: 90dvh; /* Use viewport height */
     font-feature-settings: 'rlig' 1, 'calt' 1;
     text-rendering: optimizeSpeed;
     overflow-x: hidden;

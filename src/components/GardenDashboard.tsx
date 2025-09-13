@@ -78,7 +78,7 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
   };
 
   return (
-    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-8">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
