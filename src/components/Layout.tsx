@@ -13,19 +13,19 @@ const Layout = () => {
     const checkForOverdueTasks = () => {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       // Find overdue tasks that don't have notifications yet
       const overdueTasks = state.tasks.filter(task => {
         if (task.completed) return false;
-        
+
         const taskDate = new Date(task.dueDate);
         taskDate.setHours(0, 0, 0, 0);
-        
+
         const isOverdue = taskDate < today;
-        const hasNotification = state.notifications.some(n => 
+        const hasNotification = state.notifications.some(n =>
           n.taskId === task.id && n.type === 'alert'
         );
-        
+
         return isOverdue && !hasNotification;
       });
 
@@ -40,25 +40,25 @@ const Layout = () => {
           createdDate: new Date(),
           taskId: task.id,
         };
-        
+
         dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
       });
 
-      // Generate reminders for upcoming tasks (tomorrow) - simplified without settings dependency
+      // Generate reminders for upcoming tasks (tomorrow)
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       const upcomingTasks = state.tasks.filter(task => {
         if (task.completed) return false;
-        
+
         const taskDate = new Date(task.dueDate);
         taskDate.setHours(0, 0, 0, 0);
-        
+
         const isTomorrow = taskDate.getTime() === tomorrow.getTime();
-        const hasReminder = state.notifications.some(n => 
+        const hasReminder = state.notifications.some(n =>
           n.taskId === task.id && n.type === 'reminder'
         );
-        
+
         return isTomorrow && !hasReminder;
       });
 
@@ -73,7 +73,7 @@ const Layout = () => {
           createdDate: new Date(),
           taskId: task.id,
         };
-        
+
         dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
       });
     };
@@ -81,11 +81,11 @@ const Layout = () => {
     // Check immediately and then every hour
     checkForOverdueTasks();
     const interval = setInterval(checkForOverdueTasks, 60 * 60 * 1000);
-    
+
     return () => clearInterval(interval);
   }, [state.tasks, state.notifications, dispatch]);
 
-  // Auto-generate watering reminders - simplified
+  // Auto-generate watering reminders
   useEffect(() => {
     const checkWateringNeeds = () => {
       const threeDaysAgo = new Date();
@@ -95,7 +95,7 @@ const Layout = () => {
         garden.beds.forEach(bed => {
           bed.plants.forEach(plant => {
             const needsWatering = !plant.lastWatered || new Date(plant.lastWatered) < threeDaysAgo;
-            const hasWateringNotification = state.notifications.some(n => 
+            const hasWateringNotification = state.notifications.some(n =>
               n.message.includes(plant.name) && n.type === 'reminder' && !n.read
             );
 
@@ -108,7 +108,7 @@ const Layout = () => {
                 read: false,
                 createdDate: new Date(),
               };
-              
+
               dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
             }
           });

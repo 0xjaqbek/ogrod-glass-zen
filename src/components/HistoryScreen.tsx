@@ -191,7 +191,7 @@ const HistoryScreen = () => {
   const stats = getActivityStats();
 
   return (
-    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-lg sm:text-2xl font-bold text-foreground">Historia</h1>

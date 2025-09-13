@@ -45,7 +45,7 @@ const GardenDetailPage = () => {
 
   if (!garden) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg text-foreground-secondary">Ogród nie znaleziony</p>
           <Link to="/gardens">
@@ -60,7 +60,7 @@ const GardenDetailPage = () => {
   const totalPlants = garden.beds.reduce((sum, bed) => sum + bed.plants.length, 0);
 
   return (
-    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3 sm:space-x-4">
         <Button 

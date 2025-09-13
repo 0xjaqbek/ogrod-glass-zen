@@ -15,11 +15,11 @@ const NavigationBar = ({ activeTab }: NavigationBarProps) => {
   const location = useLocation();
 
   const tabs = [
-    { id: "dashboard", icon: Home, label: "Dom", path: "/" },
-    { id: "gardens", icon: Sprout, label: "Ogrody", path: "/gardens" },
-    { id: "tasks", icon: CheckSquare, label: "Zadania", path: "/tasks" },
-    { id: "notifications", icon: Bell, label: "Powiadomienia", path: "/notifications" },
-    { id: "settings", icon: Settings, label: "Ustawienia", path: "/settings" },
+    { id: "dashboard", icon: Home, label: "", path: "/" },
+    { id: "gardens", icon: Sprout, label: "", path: "/gardens" },
+    { id: "tasks", icon: CheckSquare, label: "", path: "/tasks" },
+    { id: "notifications", icon: Bell, label: "", path: "/notifications" },
+    { id: "settings", icon: Settings, label: "", path: "/settings" },
   ];
 
   // Calculate badge counts

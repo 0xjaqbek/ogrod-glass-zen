@@ -39,47 +39,12 @@ const NotificationsScreen = () => {
     return filtered.sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime());
   }, [state.notifications, filter]);
 
-  // Create notifications from overdue tasks
-  const overdueTaskNotifications = useMemo(() => {
-    const overdueTasks = todaysTasks.filter(task => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const taskDate = new Date(task.dueDate);
-      taskDate.setHours(0, 0, 0, 0);
-      return taskDate < today;
-    });
-
-    return overdueTasks.map(task => ({
-      id: `overdue-${task.id}`,
-      title: 'Zadanie przeterminowane!',
-      message: `${task.title} - ${task.description}`,
-      type: 'alert' as const,
-      read: false,
-      createdDate: task.dueDate,
-      taskId: task.id,
-    }));
-  }, [todaysTasks]);
-
-  // Combine real notifications with generated ones
+  // Use only real notifications
   const allNotifications = useMemo(() => {
-    const combined = [...filteredNotifications, ...overdueTaskNotifications];
-    return combined.sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime());
-  }, [filteredNotifications, overdueTaskNotifications]);
+    return filteredNotifications.sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime());
+  }, [filteredNotifications]);
 
   const handleMarkAsRead = (notificationId: string) => {
-    if (notificationId.startsWith('overdue-')) {
-      // Handle overdue task notifications
-      const taskId = notificationId.replace('overdue-', '');
-      const task = todaysTasks.find(t => t.id === taskId);
-      if (task) {
-        toast({
-          title: "Przejdź do zadania",
-          description: "To zadanie jest przeterminowane",
-        });
-      }
-      return;
-    }
-
     dispatch({ type: 'MARK_NOTIFICATION_READ', payload: notificationId });
     toast({
       title: "Oznaczono jako przeczytane ✓",
@@ -87,10 +52,6 @@ const NotificationsScreen = () => {
   };
 
   const handleDeleteNotification = (notificationId: string) => {
-    if (notificationId.startsWith('overdue-')) {
-      return; // Can't delete overdue notifications
-    }
-
     dispatch({ type: 'DELETE_NOTIFICATION', payload: notificationId });
     toast({
       title: "Powiadomienie usunięte",
@@ -98,27 +59,14 @@ const NotificationsScreen = () => {
   };
 
   const handleCompleteTaskFromNotification = (notificationId: string, taskId: string) => {
-    if (notificationId.startsWith('overdue-')) {
-      // Handle overdue task
-      const task = todaysTasks.find(t => t.id === taskId);
-      if (task) {
-        completeTask(taskId, task.plantId, task.bedId);
-        toast({
-          title: "Zadanie wykonane! ✅",
-          description: `Ukończono: ${task.title}`,
-        });
-      }
-    } else {
-      // Handle regular notification
-      const task = [...todaysTasks, ...upcomingTasks].find(t => t.id === taskId);
-      if (task) {
-        completeTask(taskId, task.plantId, task.bedId);
-        dispatch({ type: 'DELETE_NOTIFICATION', payload: notificationId });
-        toast({
-          title: "Zadanie wykonane! ✅",
-          description: `Ukończono: ${task.title}`,
-        });
-      }
+    const task = [...todaysTasks, ...upcomingTasks].find(t => t.id === taskId);
+    if (task) {
+      completeTask(taskId, task.plantId, task.bedId);
+      dispatch({ type: 'DELETE_NOTIFICATION', payload: notificationId });
+      toast({
+        title: "Zadanie wykonane! ✅",
+        description: `Ukończono: ${task.title}`,
+      });
     }
   };
 
@@ -194,7 +142,7 @@ const NotificationsScreen = () => {
     return date.toLocaleDateString('pl-PL');
   };
 
-  const unreadCount = state.notifications.filter(n => !n.read).length + overdueTaskNotifications.length;
+  const unreadCount = state.notifications.filter(n => !n.read).length;
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
@@ -210,7 +158,7 @@ const NotificationsScreen = () => {
           </p>
         </div>
         
-        {(state.notifications.length > 0 || overdueTaskNotifications.length > 0) && (
+        {state.notifications.length > 0 && (
           <div className="flex space-x-2">
             {unreadCount > 0 && (
               <Button 
@@ -239,15 +187,15 @@ const NotificationsScreen = () => {
       </div>
 
       {/* Filter Tabs */}
-      {(state.notifications.length > 0 || overdueTaskNotifications.length > 0) && (
+      {state.notifications.length > 0 && (
         <Card className="glass rounded-xl p-2">
           <div className="flex space-x-1 overflow-x-auto">
             {[
               { key: 'all', label: 'Wszystkie', count: allNotifications.length },
               { key: 'unread', label: 'Nieprzeczytane', count: unreadCount },
-              { key: 'tasks', label: 'Zadania', count: [...state.notifications.filter(n => n.type === 'task'), ...overdueTaskNotifications].length },
+              { key: 'tasks', label: 'Zadania', count: state.notifications.filter(n => n.type === 'task').length },
               { key: 'reminders', label: 'Przypomnienia', count: state.notifications.filter(n => n.type === 'reminder').length },
-              { key: 'alerts', label: 'Alerty', count: [...state.notifications.filter(n => n.type === 'alert'), ...overdueTaskNotifications].length },
+              { key: 'alerts', label: 'Alerty', count: state.notifications.filter(n => n.type === 'alert').length },
             ].map(tab => (
               <Button
                 key={tab.key}
@@ -283,10 +231,7 @@ const NotificationsScreen = () => {
       {allNotifications.length > 0 ? (
         <div className="space-y-3">
           {allNotifications.map((notification) => {
-            const isOverdue = notification.id.startsWith('overdue-');
-            const task = isOverdue 
-              ? todaysTasks.find(t => t.id === notification.taskId)
-              : [...todaysTasks, ...upcomingTasks].find(t => t.id === notification.taskId);
+            const task = [...todaysTasks, ...upcomingTasks].find(t => t.id === notification.taskId);
 
             return (
               <Card 
@@ -297,8 +242,8 @@ const NotificationsScreen = () => {
               >
                 <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0 ${
-                    notification.type === 'alert' || isOverdue
-                      ? 'bg-red-500/20' 
+                    notification.type === 'alert'
+                      ? 'bg-red-500/20'
                       : notification.type === 'reminder'
                       ? 'bg-orange-500/20'
                       : 'bg-emerald/20'
@@ -323,12 +268,12 @@ const NotificationsScreen = () => {
                             variant="secondary" 
                             className={`text-xs ${getNotificationBadgeColor(notification.type)}`}
                           >
-                            {notification.type === 'alert' || isOverdue ? 'Alert' 
+                            {notification.type === 'alert' ? 'Alert'
                              : notification.type === 'reminder' ? 'Przypomnienie'
                              : notification.type === 'task' ? 'Zadanie'
                              : 'Powiadomienie'}
                           </Badge>
-                          {!notification.read && !isOverdue && (
+                          {!notification.read && (
                             <Badge variant="secondary" className="bg-emerald/20 text-emerald border-emerald/30 text-xs">
                               Nowe
                             </Badge>
@@ -344,33 +289,29 @@ const NotificationsScreen = () => {
                             className="bg-emerald hover:bg-emerald-light emerald-glow text-xs"
                           >
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            {isOverdue ? 'Wykonaj' : 'Gotowe'}
+                            Gotowe
                           </Button>
                         )}
-                        
-                        {!isOverdue && (
-                          <>
-                            {!notification.read && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleMarkAsRead(notification.id)}
-                                className="glass-button text-xs"
-                              >
-                                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            )}
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteNotification(notification.id)}
-                              className="glass-button text-xs hover:text-red-500"
-                            >
-                              <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-                          </>
+
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMarkAsRead(notification.id)}
+                            className="glass-button text-xs"
+                          >
+                            <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
                         )}
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteNotification(notification.id)}
+                          className="glass-button text-xs hover:text-red-500"
+                        >
+                          <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -379,7 +320,7 @@ const NotificationsScreen = () => {
             );
           })}
         </div>
-      ) : state.notifications.length === 0 && overdueTaskNotifications.length === 0 ? (
+      ) : state.notifications.length === 0 ? (
         /* Empty State */
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="p-4 rounded-full bg-emerald/20 mb-4">

@@ -1,4 +1,19 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  saveGardensToFirebase,
+  loadGardensFromFirebase,
+  saveTasksToFirebase,
+  loadTasksFromFirebase,
+  saveNotificationsToFirebase,
+  loadNotificationsFromFirebase,
+  saveActivitiesToFirebase,
+  loadActivitiesFromFirebase,
+  initializeUserData,
+  subscribeToGardens,
+  subscribeToTasks,
+  subscribeToNotifications
+} from '@/lib/firebaseService';
 
 // Types
 export interface Plant {
@@ -72,6 +87,7 @@ export interface GardenState {
 
 // Actions
 export type GardenAction =
+  | { type: 'LOAD_DATA'; payload: { gardens: Garden[]; tasks: Task[]; notifications: Notification[]; activities: Activity[] } }
   | { type: 'ADD_GARDEN'; payload: Omit<Garden, 'id'> }
   | { type: 'UPDATE_GARDEN'; payload: Garden }
   | { type: 'DELETE_GARDEN'; payload: string }
@@ -104,6 +120,15 @@ const initialState: GardenState = {
 // Reducer
 const gardenReducer = (state: GardenState, action: GardenAction): GardenState => {
   switch (action.type) {
+    case 'LOAD_DATA':
+      return {
+        ...state,
+        gardens: action.payload.gardens,
+        tasks: action.payload.tasks,
+        notifications: action.payload.notifications,
+        activities: action.payload.activities,
+      };
+
     case 'ADD_GARDEN':
       { const newGarden: Garden = {
         ...action.payload,
@@ -372,6 +397,55 @@ const GardenContext = createContext<GardenContextType | undefined>(undefined);
 // Provider Component
 export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(gardenReducer, initialState);
+  const { currentUser } = useAuth();
+
+  // Initialize user data and load from Firebase when user changes
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const initializeAndLoadData = async () => {
+      try {
+        await initializeUserData(currentUser.uid);
+        
+        // Load data from Firebase
+        const [gardens, tasks, notifications, activities] = await Promise.all([
+          loadGardensFromFirebase(currentUser.uid),
+          loadTasksFromFirebase(currentUser.uid),
+          loadNotificationsFromFirebase(currentUser.uid),
+          loadActivitiesFromFirebase(currentUser.uid)
+        ]);
+
+        // Update state with loaded data
+        dispatch({ type: 'LOAD_DATA', payload: { gardens, tasks, notifications, activities } });
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    initializeAndLoadData();
+  }, [currentUser]);
+
+  // Auto-save to Firebase when data changes
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const saveDataToFirebase = async () => {
+      try {
+        await Promise.all([
+          saveGardensToFirebase(currentUser.uid, state.gardens),
+          saveTasksToFirebase(currentUser.uid, state.tasks),
+          saveNotificationsToFirebase(currentUser.uid, state.notifications),
+          saveActivitiesToFirebase(currentUser.uid, state.activities)
+        ]);
+      } catch (error) {
+        console.error('Error saving data to Firebase:', error);
+      }
+    };
+
+    // Debounce saves to avoid too many writes
+    const timeoutId = setTimeout(saveDataToFirebase, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [currentUser, state.gardens, state.tasks, state.notifications, state.activities]);
 
   // Garden actions
   const addGarden = useCallback((garden: Omit<Garden, 'id'>) => {

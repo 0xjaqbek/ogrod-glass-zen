@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Droplets, Sprout, ArrowRight, CheckCircle, Calendar } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,15 +15,16 @@ interface GardenDashboardProps {
 }
 
 const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
-  const { 
-    state, 
-    getTodaysTasks, 
-    getUpcomingTasks, 
-    completeTask, 
+  const {
+    state,
+    getTodaysTasks,
+    getUpcomingTasks,
+    completeTask,
     addGarden,
     dispatch 
   } = useGarden();
-  
+  const { currentUser } = useAuth();
+
   const [isAddGardenOpen, setIsAddGardenOpen] = useState(false);
   const [newGardenName, setNewGardenName] = useState('');
 
@@ -83,7 +85,7 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-            Dzień dobry! <Sprout className="h-5 w-5 sm:h-6 sm:w-6 text-emerald" />
+            Dzień dobry{currentUser?.displayName ? `, ${currentUser.displayName.split(' ')[0]}` : ''}! <Sprout className="h-5 w-5 sm:h-6 sm:w-6 text-emerald" />
           </h1>
           <p className="text-sm sm:text-base text-foreground-secondary">
             {state.gardens.length === 0 
@@ -280,18 +282,6 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
         </div>
       )}
 
-      {/* Floating Action Button */}
-      {state.gardens.length > 0 && (
-        <div className="fixed bottom-16 sm:bottom-24 right-3 sm:right-6">
-          <Button 
-            size="lg" 
-            onClick={() => setIsAddGardenOpen(true)}
-            className="glass-button emerald-glow-strong rounded-full h-12 w-12 sm:h-14 sm:w-14 bg-emerald hover:bg-emerald-light shadow-2xl"
-          >
-            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

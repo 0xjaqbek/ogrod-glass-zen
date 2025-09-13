@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info } from "lucide-react";
+import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info, LogOut } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
 const SettingsScreen = () => {
   const { state, dispatch } = useGarden();
+  const { logout } = useAuth();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isClearDataOpen, setIsClearDataOpen] = useState(false);
@@ -193,25 +195,33 @@ const SettingsScreen = () => {
     state.gardens.forEach(garden => {
       dispatch({ type: 'DELETE_GARDEN', payload: garden.id });
     });
-    
+
     state.tasks.forEach(task => {
       dispatch({ type: 'DELETE_TASK', payload: task.id });
     });
-    
+
     state.activities.forEach(activity => {
       dispatch({ type: 'DELETE_ACTIVITY', payload: activity.id });
     });
-    
+
     state.notifications.forEach(notification => {
       dispatch({ type: 'DELETE_NOTIFICATION', payload: notification.id });
     });
-    
+
     toast({
       title: "Dane wyczyszczone",
       description: "Wszystkie dane ogrodu zostały usunięte",
     });
-    
+
     setIsClearDataOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      // Error is already handled in AuthContext
+    }
   };
 
   const getAppInfo = () => {
@@ -309,18 +319,25 @@ const SettingsScreen = () => {
           ],
           onChange: (value: string) => handleSettingChange('units', value)
         },
-        { 
-          label: "Informacje o profilu", 
+        {
+          label: "Informacje o profilu",
           description: "Zarządzaj danymi profilu",
           action: () => setIsProfileOpen(true),
-          hasArrow: true 
+          hasArrow: true
+        },
+        {
+          label: "Wyloguj się",
+          description: "Zakończ sesję w aplikacji",
+          action: handleLogout,
+          hasArrow: true,
+          danger: true
         }
       ]
     }
   ];
 
   return (
-    <div className="min-h-screen p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-lg sm:text-2xl font-bold text-foreground">Ustawienia</h1>
