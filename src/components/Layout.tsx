@@ -135,18 +135,37 @@ const Layout = () => {
   };
 
   useEffect(() => {
+    // Clean up any existing gradient classes first
+    const gradientClasses = [
+      'bg-gradient-animated',
+      'bg-gradient-mesh', 
+      'bg-gradient-aurora',
+      'bg-gradient-depth'
+    ];
+    
+    gradientClasses.forEach(className => {
+      document.body.classList.remove(className);
+    });
+    
     // Choose ONE of these:
-    // document.body.classList.add('bg-gradient-animated'); // ✨ Most Dynamic!
-    // document.body.classList.add('bg-gradient-mesh');     // 🎨 Complex
-     document.body.classList.add('bg-gradient-aurora');   // 🌈 Flowing
+     document.body.classList.add('bg-gradient-animated'); // ✨ Most Dynamic!
+   // document.body.classList.add('bg-gradient-mesh');     // 🎨 Complex
+    // document.body.classList.add('bg-gradient-aurora');   // 🌈 Flowing
     // document.body.classList.add('bg-gradient-depth');    // 🌊 Layered
+    
+    // Cleanup function to remove classes when component unmounts
+    return () => {
+      gradientClasses.forEach(className => {
+        document.body.classList.remove(className);
+      });
+    };
   }, []);
 
 
   const activeTab = getActiveTab(location.pathname);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Main Content */}
       <main className="pb-16 sm:pb-24">
         <Outlet />

@@ -470,6 +470,45 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  /* Dynamic Background Gradients */
+  body.bg-gradient-animated {
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(160 84% 39% / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, hsl(188 94% 42% / 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 20% 70%, hsl(262 83% 58% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 70% 20%, hsl(347 77% 50% / 0.06) 0%, transparent 50%),
+      linear-gradient(135deg, hsl(222, 84%, 4.9%) 0%, hsl(220, 27%, 8%) 50%, hsl(218, 20%, 12%) 100%) !important;
+    animation: gradient-shift 20s ease-in-out infinite;
+    background-size: 400% 400%;
+  }
+
+  body.bg-gradient-aurora {
+    background: 
+      linear-gradient(45deg, 
+        hsl(160 84% 39% / 0.2) 0%, 
+        hsl(188 94% 42% / 0.25) 25%,
+        hsl(262 83% 58% / 0.15) 50%,
+        hsl(347 77% 50% / 0.1) 75%,
+        hsl(45 93% 47% / 0.08) 100%),
+      radial-gradient(ellipse at center, transparent 0%, hsl(222, 84%, 4.9%) 70%) !important;
+    animation: aurora-flow 15s ease-in-out infinite;
+  }
+
+  body.bg-gradient-mesh {
+    background: 
+      radial-gradient(ellipse 100% 60% at 70% 120%, hsl(160 84% 39% / 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 30% -10%, hsl(188 94% 42% / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 80% at 90% 40%, hsl(262 83% 58% / 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 70% at 10% 90%, hsl(347 77% 50% / 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, hsl(222, 84%, 4.9%) 0%, hsl(220, 27%, 8%) 100%) !important;
+  }
+
+  body.bg-gradient-depth {
+    background: 
+      linear-gradient(180deg, hsl(222, 84%, 4.9%) 0%, hsl(220, 27%, 8%) 40%, hsl(218, 20%, 12%) 100%),
+      radial-gradient(ellipse 150% 80% at 50% 0%, hsl(160 84% 39% / 0.08) 0%, transparent 50%) !important;
+  }
   
   /* Animation Classes */
   .animate-float {
