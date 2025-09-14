@@ -4,10 +4,18 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Sprout, ArrowRight } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
+import { useEffect } from "react";
 
 const GardensPage = () => {
   const { state } = useGarden();
   const navigate = useNavigate();
+
+  // Auto-redirect to garden detail if only one garden exists
+  useEffect(() => {
+    if (state.gardens.length === 1) {
+      navigate(`/gardens/${state.gardens[0].id}`, { replace: true });
+    }
+  }, [state.gardens, navigate]);
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">

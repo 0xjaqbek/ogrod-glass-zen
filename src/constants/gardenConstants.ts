@@ -67,9 +67,9 @@ export const PLANT_TYPES = [
       'Zbieraj gdy korzenie osiągną odpowiedni rozmiar'
     ]
   },
-  { 
-    name: 'Rzodkiewka', 
-    emoji: '🔴', 
+  {
+    name: 'Rzodkiewka',
+    emoji: '🫐',
     category: 'Warzywa korzeniowe',
     growthDays: 30,
     phases: ['Nasiona', 'Wschody', 'Wzrost', 'Dojrzewanie', 'Zbiory'],
@@ -119,9 +119,9 @@ export const PLANT_TYPES = [
       'Zbieraj młode strąki dla lepszego plonowania'
     ]
   },
-  { 
-    name: 'Groszek', 
-    emoji: '🟢', 
+  {
+    name: 'Groszek',
+    emoji: '🫛', 
     category: 'Rośliny strączkowe',
     growthDays: 80,
     phases: ['Nasiona', 'Wschody', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
@@ -197,9 +197,9 @@ export const PLANT_TYPES = [
       'Usuń kwiatostany dla lepszych liści'
     ]
   },
-  { 
-    name: 'Truskawka', 
-    emoji: '🍓', 
+  {
+    name: 'Truskawka',
+    emoji: '🍓',
     category: 'Owoce',
     growthDays: 120,
     phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
@@ -208,6 +208,227 @@ export const PLANT_TYPES = [
       'Sadź sadzonki we wrześniu lub wiosną',
       'Usuń pierwsze rozłogi',
       'Mulczuj słomą przed owocowaniem'
+    ]
+  },
+  {
+    name: 'Cukinia',
+    emoji: '🥒',
+    category: 'Warzywa owocowe',
+    growthDays: 85,
+    phases: ['Nasiona', 'Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Mulczowanie', 'Zbierz młode owoce'],
+    tips: [
+      'Wymaga dużo miejsca i żyznej gleby',
+      'Zbieraj młode owoce regularnie',
+      'Jedna roślina wystarczy dla rodziny'
+    ]
+  },
+  {
+    name: 'Dynia',
+    emoji: '🎃',
+    category: 'Warzywa owocowe',
+    growthDays: 130,
+    phases: ['Nasiona', 'Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Podłóż pod owoce', 'Zbierz dojrzałe owoce'],
+    tips: [
+      'Wymaga bardzo dużo miejsca',
+      'Podkładaj deski pod dojrzewające owoce',
+      'Zbieraj przed pierwszymi przymrozkami'
+    ]
+  },
+  {
+    name: 'Bakłażan',
+    emoji: '🍆',
+    category: 'Warzywa owocowe',
+    growthDays: 110,
+    phases: ['Sadzonki', 'Przesadzanie', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Podwiąż pędy', 'Zbierz owoce'],
+    tips: [
+      'Wymaga ciepła i słońca',
+      'Przesadzaj po całkowitym ustąpieniu przymrozków',
+      'Zbieraj gdy owoce są błyszczące'
+    ]
+  },
+  {
+    name: 'Szpinak',
+    emoji: '🥬',
+    category: 'Warzywa liściaste',
+    growthDays: 50,
+    phases: ['Nasiona', 'Wschody', 'Wzrost', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przerzedź sadzonki', 'Zbierz liście'],
+    tips: [
+      'Lubi chłodne warunki',
+      'Siaj wiosną i jesienią',
+      'Zbieraj zewnętrzne liście'
+    ]
+  },
+  {
+    name: 'Rukola',
+    emoji: '🥬',
+    category: 'Warzywa liściaste',
+    growthDays: 40,
+    phases: ['Nasiona', 'Wschody', 'Wzrost', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przerzedź sadzonki', 'Zbierz liście'],
+    tips: [
+      'Bardzo szybki wzrost',
+      'Siaj sukcesywnie co 2 tygodnie',
+      'Zbieraj młode liście dla lepszego smaku'
+    ]
+  },
+  {
+    name: 'Burak',
+    emoji: '🟣',
+    category: 'Warzywa korzeniowe',
+    growthDays: 100,
+    phases: ['Nasiona', 'Wschody', 'Wzrost', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przerzedź sadzonki', 'Zbierz korzenie'],
+    tips: [
+      'Młode liście również jadalne',
+      'Zbieraj gdy korzenie mają 5-8cm średnicy',
+      'Przechowuj w piasku w chłodnym miejscu'
+    ]
+  },
+  {
+    name: 'Rzepa',
+    emoji: '🟡',
+    category: 'Warzywa korzeniowe',
+    growthDays: 75,
+    phases: ['Nasiona', 'Wschody', 'Wzrost', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przerzedź sadzonki', 'Zbierz korzenie'],
+    tips: [
+      'Odporna na mróz',
+      'Siaj latem na jesienne zbiory',
+      'Młode liście również jadalne'
+    ]
+  },
+  {
+    name: 'Czosnek',
+    emoji: '🧄',
+    category: 'Warzywa cebulowe',
+    growthDays: 240,
+    phases: ['Sadzenie', 'Wzrost zimowy', 'Wzrost wiosenny', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Sadź ząbki', 'Odchwaszczanie', 'Zbierz główki'],
+    tips: [
+      'Sadź jesienią ząbki ozime',
+      'Zbieraj gdy dolne liście żółkną',
+      'Susź w przewiewnym, ciemnym miejscu'
+    ]
+  },
+  {
+    name: 'Por',
+    emoji: '🥒',
+    category: 'Warzywa cebulowe',
+    growthDays: 150,
+    phases: ['Sadzonki', 'Przesadzanie', 'Wzrost', 'Obsypywanie', 'Zbiory'],
+    tasks: ['Przesadź sadzonki', 'Obsypywanie', 'Zbierz łodygi'],
+    tips: [
+      'Obsypuj regularnie dla białych łodyg',
+      'Odporny na mróz',
+      'Zbieraj przez całą jesień i zimę'
+    ]
+  },
+  {
+    name: 'Kalarepa',
+    emoji: '🥬',
+    category: 'Warzywa kapustne',
+    growthDays: 80,
+    phases: ['Sadzonki', 'Przesadzanie', 'Wzrost', 'Formowanie bulw', 'Zbiory'],
+    tasks: ['Przesadź sadzonki', 'Podlewanie', 'Zbierz bulwy'],
+    tips: [
+      'Zbieraj gdy bulwy mają 6-8cm średnicy',
+      'Nie pozostawiaj za długo na grządce',
+      'Liście również jadalne'
+    ]
+  },
+  {
+    name: 'Brukselka',
+    emoji: '🥬',
+    category: 'Warzywa kapustne',
+    growthDays: 120,
+    phases: ['Sadzonki', 'Przesadzanie', 'Wzrost', 'Formowanie pączków', 'Zbiory'],
+    tasks: ['Przesadź sadzonki', 'Podwiązywanie', 'Zbierz pączki'],
+    tips: [
+      'Zbieraj pączki od dołu ku górze',
+      'Mróz poprawia smak',
+      'Usuń górne liście przed zbiorem'
+    ]
+  },
+  {
+    name: 'Szczypiorek',
+    emoji: '🌿',
+    category: 'Zioła',
+    growthDays: 60,
+    phases: ['Nasiona', 'Wschody', 'Wzrost', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie', 'Zbierz liście'],
+    tips: [
+      'Roślina wieloletnia',
+      'Przycinaj regularnie dla nowych pędów',
+      'Można uprawiać w doniczkach'
+    ]
+  },
+  {
+    name: 'Oregano',
+    emoji: '🌿',
+    category: 'Zioła',
+    growthDays: 80,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie', 'Zbierz liście'],
+    tips: [
+      'Roślina wieloletnia',
+      'Najlepszy smak przed kwitnieniem',
+      'Suszyć do użytku zimowego'
+    ]
+  },
+  {
+    name: 'Rozmaryn',
+    emoji: '🌿',
+    category: 'Zioła',
+    growthDays: 90,
+    phases: ['Sadzonki', 'Wzrost', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie', 'Zbierz gałązki'],
+    tips: [
+      'Roślina wieloletnia, mało mrozoodporna',
+      'Wymaga przepuszczalnej gleby',
+      'Można uprawiać w doniczkach'
+    ]
+  },
+  {
+    name: 'Tymianek',
+    emoji: '🌿',
+    category: 'Zioła',
+    growthDays: 75,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie', 'Zbierz liście'],
+    tips: [
+      'Roślina wieloletnia',
+      'Lubi słoneczne, suche stanowiska',
+      'Zbieraj przed kwitnieniem'
+    ]
+  },
+  {
+    name: 'Mięta',
+    emoji: '🌿',
+    category: 'Zioła',
+    growthDays: 70,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Ograniczanie rozprzestrzeniania', 'Zbierz liście'],
+    tips: [
+      'Bardzo ekspansywna - sadź w ograniczeniach',
+      'Lubi wilgotne stanowiska',
+      'Zbieraj przed kwitnieniem'
+    ]
+  },
+  {
+    name: 'Majeranek',
+    emoji: '🌿',
+    category: 'Zioła',
+    growthDays: 85,
+    phases: ['Nasiona', 'Wschody', 'Wzrost', 'Kwitnienie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie', 'Zbierz liście'],
+    tips: [
+      'Lubi ciepłe, słoneczne stanowiska',
+      'Siaj późną wiosną',
+      'Suszyć na zimę w przewiewnym miejscu'
     ]
   }
 ] as const;

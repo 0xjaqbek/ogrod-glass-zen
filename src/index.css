@@ -365,6 +365,75 @@
     background: rgba(0, 0, 0, 0.05) !important;
     border: 1px solid rgba(0, 0, 0, 0.12) !important;
   }
+
+  /* Form elements in reversed (light) theme - bright glass effect */
+  html.theme-reversed input.glass,
+  html.theme-reversed textarea.glass,
+  html.theme-reversed [data-radix-select-trigger],
+  body.theme-reversed input.glass,
+  body.theme-reversed textarea.glass,
+  body.theme-reversed [data-radix-select-trigger],
+  .theme-reversed input.glass,
+  .theme-reversed textarea.glass,
+  .theme-reversed [data-radix-select-trigger] {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    color: hsl(var(--foreground)) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Select dropdown content in reversed theme - bright glass */
+  html.theme-reversed [data-radix-select-content],
+  html.theme-reversed [data-radix-select-viewport],
+  body.theme-reversed [data-radix-select-content],
+  body.theme-reversed [data-radix-select-viewport],
+  .theme-reversed [data-radix-select-content],
+  .theme-reversed [data-radix-select-viewport] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    color: hsl(var(--foreground)) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* Select items in reversed theme */
+  html.theme-reversed [data-radix-select-item],
+  body.theme-reversed [data-radix-select-item],
+  .theme-reversed [data-radix-select-item] {
+    background: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  html.theme-reversed [data-radix-select-item]:hover,
+  html.theme-reversed [data-radix-select-item][data-highlighted],
+  body.theme-reversed [data-radix-select-item]:hover,
+  body.theme-reversed [data-radix-select-item][data-highlighted],
+  .theme-reversed [data-radix-select-item]:hover,
+  .theme-reversed [data-radix-select-item][data-highlighted] {
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Button styles in reversed theme - dark glass effect */
+  html.theme-reversed button[variant="ghost"].glass-button,
+  body.theme-reversed button[variant="ghost"].glass-button,
+  .theme-reversed button[variant="ghost"].glass-button {
+    background: rgba(0, 0, 0, 0.08) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.18) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  html.theme-reversed button[variant="ghost"]:hover.glass-button,
+  body.theme-reversed button[variant="ghost"]:hover.glass-button,
+  .theme-reversed button[variant="ghost"]:hover.glass-button {
+    background: rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(0, 0, 0, 0.25) !important;
+  }
   
   /* Modern Hover Effects */
   .glass-hover {
