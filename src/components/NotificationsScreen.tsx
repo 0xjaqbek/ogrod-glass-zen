@@ -9,7 +9,7 @@ import { toast } from "@/hooks/use-toast";
 
 const NotificationsScreen = () => {
   const { state, dispatch, completeTask, getTodaysTasks, getUpcomingTasks } = useGarden();
-  const [filter, setFilter] = useState<'all' | 'unread' | 'tasks' | 'reminders' | 'alerts'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | 'tasks' | 'reminders' | 'alerts' | 'completed'>('all');
 
   const todaysTasks = getTodaysTasks();
   const upcomingTasks = getUpcomingTasks();
@@ -31,13 +31,23 @@ const NotificationsScreen = () => {
       case 'alerts':
         filtered = filtered.filter(n => n.type === 'alert');
         break;
+      case 'completed':
+        // Show notifications related to completed tasks
+        filtered = filtered.filter(n => {
+          if (n.taskId) {
+            const task = state.tasks.find(t => t.id === n.taskId);
+            return task?.completed === true;
+          }
+          return false;
+        });
+        break;
       default:
         // 'all' - no filtering
         break;
     }
 
     return filtered.sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime());
-  }, [state.notifications, filter]);
+  }, [state.notifications, state.tasks, filter]);
 
   // Use only real notifications
   const allNotifications = useMemo(() => {
@@ -52,6 +62,37 @@ const NotificationsScreen = () => {
   };
 
   const handleDeleteNotification = (notificationId: string) => {
+    // Check if this is a watering notification and update plant's lastWatered date
+    if (notificationId.includes('watering-')) {
+      const plantId = notificationId.split('watering-')[1]?.split('-')[0];
+
+      if (plantId) {
+        // Find the plant and update its lastWatered date
+        state.gardens.forEach(garden => {
+          garden.beds.forEach(bed => {
+            const plant = bed.plants.find(p => p.id === plantId);
+            if (plant) {
+              const updatedPlant = {
+                ...plant,
+                lastWatered: new Date() // Mark as watered now to prevent re-creation
+              };
+
+              dispatch({
+                type: 'UPDATE_PLANT',
+                payload: {
+                  gardenId: garden.id,
+                  bedId: bed.id,
+                  plant: updatedPlant
+                }
+              });
+
+              console.log(`Updated lastWatered for ${plant.name} when deleting watering notification`);
+            }
+          });
+        });
+      }
+    }
+
     dispatch({ type: 'DELETE_NOTIFICATION', payload: notificationId });
     toast({
       title: "Powiadomienie usunięte",
@@ -198,6 +239,13 @@ const NotificationsScreen = () => {
               { key: 'tasks', label: 'Zadania', count: state.notifications.filter(n => n.type === 'task').length },
               { key: 'reminders', label: 'Przypomnienia', count: state.notifications.filter(n => n.type === 'reminder').length },
               { key: 'alerts', label: 'Alerty', count: state.notifications.filter(n => n.type === 'alert').length },
+              { key: 'completed', label: 'Ukończone', count: state.notifications.filter(n => {
+                if (n.taskId) {
+                  const task = state.tasks.find(t => t.id === n.taskId);
+                  return task?.completed === true;
+                }
+                return false;
+              }).length },
             ].map(tab => (
               <Button
                 key={tab.key}
@@ -284,7 +332,7 @@ const NotificationsScreen = () => {
                       </div>
                       
                       <div className="flex items-center space-x-1 ml-2">
-                        {notification.taskId && task && (
+                        {notification.taskId && task && !task.completed && (
                           <Button
                             size="sm"
                             onClick={() => handleCompleteTaskFromNotification(notification.id, notification.taskId!)}
@@ -293,6 +341,13 @@ const NotificationsScreen = () => {
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Gotowe
                           </Button>
+                        )}
+
+                        {notification.taskId && task && task.completed && (
+                          <div className="flex items-center space-x-1 text-xs text-emerald">
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span>Ukończone</span>
+                          </div>
                         )}
 
                         {!notification.read && (
@@ -342,10 +397,12 @@ const NotificationsScreen = () => {
             <Bell className="h-8 w-8 text-foreground-secondary" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">
-            Brak powiadomień w tej kategorii
+            {filter === 'completed' ? 'Brak powiadomień o ukończonych zadaniach' : 'Brak powiadomień w tej kategorii'}
           </h3>
           <p className="text-foreground-secondary mb-4 max-w-sm">
-            Spróbuj wybrać inną kategorię lub wyczyść filtry.
+            {filter === 'completed'
+              ? 'Ukończ kilka zadań aby zobaczyć związane z nimi powiadomienia tutaj.'
+              : 'Spróbuj wybrać inną kategorię lub wyczyść filtry.'}
           </p>
           <Button 
             onClick={() => setFilter('all')}

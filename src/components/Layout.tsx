@@ -95,11 +95,24 @@ const Layout = () => {
         garden.beds.forEach(bed => {
           bed.plants.forEach(plant => {
             const needsWatering = !plant.lastWatered || new Date(plant.lastWatered) < threeDaysAgo;
+
+            // Check for existing notification more specifically using plant ID in the notification ID
             const hasWateringNotification = state.notifications.some(n =>
-              n.message.includes(plant.name) && n.type === 'reminder'
+              n.id.includes(`watering-${plant.id}`) && n.type === 'reminder'
             );
 
-            if (needsWatering && !hasWateringNotification) {
+            // Also check if plant was watered recently (within last day) to avoid spam
+            const wateredRecently = plant.lastWatered &&
+              new Date(plant.lastWatered) > new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+            console.log(`Watering check for ${plant.name}:`, {
+              needsWatering,
+              hasWateringNotification,
+              wateredRecently,
+              lastWatered: plant.lastWatered
+            });
+
+            if (needsWatering && !hasWateringNotification && !wateredRecently) {
               const notification = {
                 id: `watering-${plant.id}-${Date.now()}`,
                 title: 'Czas podlać rośliny!',
@@ -109,6 +122,7 @@ const Layout = () => {
                 createdDate: new Date(),
               };
 
+              console.log('Creating watering notification for:', plant.name);
               dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
             }
           });
