@@ -127,7 +127,9 @@ const NotificationsScreen = () => {
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (date: Date | undefined) => {
+    if (!date) return 'Nieznana data';
+
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     

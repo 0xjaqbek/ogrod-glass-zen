@@ -27,22 +27,25 @@ const NavigationBar = ({ activeTab }: NavigationBarProps) => {
     switch (tabId) {
       case 'dashboard':
         { const todaysTasks = getTodaysTasks();
-        const upcomingTasks = getUpcomingTasks();
-        const totalTasks = todaysTasks.length + upcomingTasks.length;
-        return totalTasks > 0 ? totalTasks : 0; }
-        
+        return todaysTasks.length; } // Only show today's tasks
+
       case 'tasks':
-        { const activeTasks = state.tasks.filter(task => !task.completed).length;
-        return activeTasks; }
+        { const todaysTasks = getTodaysTasks();
+        return todaysTasks.length; } // Only show today's tasks
         
       case 'notifications':
         { const unreadNotifications = state.notifications.filter(n => !n.read).length;
-        const overdueTasks = getTodaysTasks().filter(task => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const taskDate = new Date(task.dueDate);
-          taskDate.setHours(0, 0, 0, 0);
-          return taskDate < today;
+        // Calculate overdue tasks using consistent date logic
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const overdueTasks = state.tasks.filter(task => {
+          if (task.completed || !task.dueDate) return false;
+
+          const taskDate = task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate);
+          if (isNaN(taskDate.getTime())) return false;
+
+          const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+          return taskDateOnly.getTime() < today.getTime();
         }).length;
         return unreadNotifications + overdueTasks; }
         

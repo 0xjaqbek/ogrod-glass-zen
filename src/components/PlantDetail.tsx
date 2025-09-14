@@ -330,7 +330,25 @@ const PlantDetail = ({ plantId, onBack }: PlantDetailProps) => {
         {plantTasks.length > 0 ? (
           <div className="space-y-2">
             {plantTasks.map((task) => {
-              const daysUntil = Math.ceil((task.dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              // Safely calculate days until task
+              let daysUntil = 0;
+              if (task.dueDate) {
+                const taskDate = task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate);
+                if (!isNaN(taskDate.getTime())) {
+                  daysUntil = Math.ceil((taskDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                  console.log(`PlantDetail: Task ${task.title} dueDate calculation:`, {
+                    originalDueDate: task.dueDate,
+                    taskDate: taskDate,
+                    now: new Date(),
+                    daysUntil: daysUntil
+                  });
+                } else {
+                  console.warn(`PlantDetail: Invalid date for task ${task.title}:`, task.dueDate);
+                }
+              } else {
+                console.warn(`PlantDetail: No dueDate for task ${task.title}`);
+              }
+
               const taskType = taskTypes.find(t => t.value === task.type);
               
               return (

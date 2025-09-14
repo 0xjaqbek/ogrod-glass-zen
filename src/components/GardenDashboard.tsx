@@ -9,6 +9,7 @@ import { useGarden } from "@/contexts/GardenContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface GardenDashboardProps {
   onGardenSelect?: () => void;
@@ -24,13 +25,14 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
     dispatch 
   } = useGarden();
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const [isAddGardenOpen, setIsAddGardenOpen] = useState(false);
   const [newGardenName, setNewGardenName] = useState('');
 
   const todaysTasks = getTodaysTasks();
   const upcomingTasks = getUpcomingTasks();
-  const totalTasks = todaysTasks.length + upcomingTasks.length;
+  const totalTasks = todaysTasks.length; // Only count today's tasks for the display
   
   const handleCompleteTask = (taskId: string) => {
     const task = [...todaysTasks, ...upcomingTasks].find(t => t.id === taskId);
@@ -138,19 +140,27 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
 
       {/* Today's Stats */}
       {state.gardens.length > 0 && (
-        <Card className="glass rounded-xl p-3 sm:p-6">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="p-2 sm:p-3 rounded-lg bg-emerald/20 emerald-glow">
-              <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-emerald" />
+        <Card
+          className={`glass rounded-xl p-3 sm:p-6 ${totalTasks > 0 ? 'glass-hover cursor-pointer' : ''}`}
+          onClick={totalTasks > 0 ? () => navigate('/tasks') : undefined}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="p-2 sm:p-3 rounded-lg bg-emerald/20 emerald-glow">
+                <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-emerald" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground">
+                  {totalTasks === 0 ? 'Brak zadań' : `${totalTasks} ${totalTasks === 1 ? 'zadanie' : totalTasks < 5 ? 'zadania' : 'zadań'} dzisiaj`}
+                </h3>
+                <p className="text-xs sm:text-sm text-foreground-secondary">
+                  {totalTasks === 0 ? 'Świetna robota!' : 'Do wykonania'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-semibold text-foreground">
-                {totalTasks === 0 ? 'Brak zadań' : `${totalTasks} ${totalTasks === 1 ? 'zadanie' : totalTasks < 5 ? 'zadania' : 'zadań'} dzisiaj`}
-              </h3>
-              <p className="text-xs sm:text-sm text-foreground-secondary">
-                {totalTasks === 0 ? 'Świetna robota!' : 'Do wykonania'}
-              </p>
-            </div>
+            {totalTasks > 0 && (
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-foreground-secondary flex-shrink-0" />
+            )}
           </div>
         </Card>
       )}

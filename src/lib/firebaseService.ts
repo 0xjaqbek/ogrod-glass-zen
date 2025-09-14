@@ -53,14 +53,32 @@ const cleanData = (obj: any): any => {
 
 // Utility function to safely convert Timestamp to Date
 const safeToDate = (timestamp: any): Date | undefined => {
-  if (!timestamp) return undefined;
+  if (!timestamp) {
+    console.log('safeToDate: timestamp is null/undefined');
+    return undefined;
+  }
 
   // Check if it's a Firebase Timestamp with toDate method
   if (timestamp && typeof timestamp.toDate === 'function') {
     try {
-      return timestamp.toDate();
+      const date = timestamp.toDate();
+      console.log('safeToDate: converted Firebase timestamp', timestamp, '→', date);
+      return date;
     } catch (error) {
       console.warn('Error converting timestamp to date:', error);
+      return undefined;
+    }
+  }
+
+  // Check if it's a Firebase Timestamp object with seconds and nanoseconds
+  if (timestamp && typeof timestamp.seconds === 'number') {
+    try {
+      // Create a Date from seconds (Firebase Timestamps use seconds, not milliseconds)
+      const date = new Date(timestamp.seconds * 1000);
+      console.log('safeToDate: converted Firebase timestamp object', timestamp, '→', date);
+      return date;
+    } catch (error) {
+      console.warn('Error converting timestamp object to date:', error);
       return undefined;
     }
   }
@@ -86,17 +104,21 @@ const safeToDate = (timestamp: any): Date | undefined => {
 
 // Garden operations
 export const saveGardensToFirebase = async (userId: string, gardens: Garden[]) => {
+  console.log(`Starting to save ${gardens.length} gardens for user ${userId}`);
+
   const batch = writeBatch(db);
   const gardensRef = getCollectionRef(userId, 'gardens');
-  
+
   // Clear existing gardens
   const existingGardens = await getDocs(gardensRef);
+  console.log(`Found ${existingGardens.size} existing gardens to delete`);
   existingGardens.forEach((doc) => {
     batch.delete(doc.ref);
   });
-  
+
   // Add new gardens
   gardens.forEach((garden) => {
+    console.log(`Processing garden: ${garden.name} with ${garden.beds.length} beds`);
     const gardenRef = doc(gardensRef, garden.id);
 
     // Convert nested Date objects to Timestamps for Firebase
@@ -115,10 +137,13 @@ export const saveGardensToFirebase = async (userId: string, gardens: Garden[]) =
     };
 
     const cleanedGarden = cleanData(processedGarden);
+    console.log(`Garden ${garden.name} cleaned data:`, cleanedGarden);
     batch.set(gardenRef, cleanedGarden);
   });
-  
+
+  console.log('Committing batch write to Firebase...');
   await batch.commit();
+  console.log('Successfully committed gardens to Firebase');
 };
 
 export const loadGardensFromFirebase = async (userId: string): Promise<Garden[]> => {
@@ -187,13 +212,33 @@ export const saveTasksToFirebase = async (userId: string, tasks: Task[]) => {
   
   // Add new tasks
   tasks.forEach((task) => {
+    console.log(`Processing task: ${task.title} with dueDate:`, task.dueDate);
     const taskRef = doc(tasksRef, task.id);
+
+    // Ensure dueDate is a valid Date before converting to Timestamp
+    let dueDateTimestamp;
+    if (task.dueDate instanceof Date) {
+      dueDateTimestamp = Timestamp.fromDate(task.dueDate);
+    } else if (typeof task.dueDate === 'string' || typeof task.dueDate === 'number') {
+      const date = new Date(task.dueDate);
+      if (!isNaN(date.getTime())) {
+        dueDateTimestamp = Timestamp.fromDate(date);
+      } else {
+        console.warn(`Invalid date for task ${task.title}:`, task.dueDate);
+        dueDateTimestamp = Timestamp.now(); // Fallback to current time
+      }
+    } else {
+      console.warn(`Invalid dueDate type for task ${task.title}:`, typeof task.dueDate, task.dueDate);
+      dueDateTimestamp = Timestamp.now(); // Fallback to current time
+    }
+
     const cleanedTask = cleanData({
       ...task,
-      dueDate: Timestamp.fromDate(new Date(task.dueDate)),
+      dueDate: dueDateTimestamp,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     });
+    console.log(`Task ${task.title} cleaned for Firebase:`, cleanedTask);
     batch.set(taskRef, cleanedTask);
   });
   
@@ -201,18 +246,29 @@ export const saveTasksToFirebase = async (userId: string, tasks: Task[]) => {
 };
 
 export const loadTasksFromFirebase = async (userId: string): Promise<Task[]> => {
+  console.log(`Loading tasks from Firebase for user: ${userId}`);
   const tasksRef = getCollectionRef(userId, 'tasks');
   const snapshot = await getDocs(query(tasksRef, orderBy('dueDate', 'asc')));
 
+  console.log(`Found ${snapshot.docs.length} tasks in Firebase`);
+
   return snapshot.docs.map(doc => {
     const data = doc.data();
-    return {
+    console.log(`Loading task ${doc.id}:`, data);
+
+    const convertedDueDate = safeToDate(data.dueDate);
+    console.log(`Converted dueDate for task ${doc.id}:`, data.dueDate, '→', convertedDueDate);
+
+    const task = {
       ...data,
       id: doc.id,
-      dueDate: safeToDate(data.dueDate),
+      dueDate: convertedDueDate,
       createdAt: safeToDate(data.createdAt),
       updatedAt: safeToDate(data.updatedAt)
     } as Task;
+
+    console.log(`Final task object:`, task);
+    return task;
   });
 };
 

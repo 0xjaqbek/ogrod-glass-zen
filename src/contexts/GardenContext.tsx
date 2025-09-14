@@ -121,6 +121,20 @@ const initialState: GardenState = {
 const gardenReducer = (state: GardenState, action: GardenAction): GardenState => {
   switch (action.type) {
     case 'LOAD_DATA':
+      console.log('Loading data from Firebase:', {
+        gardens: action.payload.gardens.length,
+        tasks: action.payload.tasks.length,
+        notifications: action.payload.notifications.length,
+        activities: action.payload.activities.length
+      });
+
+      // Debug tasks that might have invalid dates
+      action.payload.tasks.forEach(task => {
+        if (!task.dueDate || task.dueDate === 'Invalid Date') {
+          console.warn('Task with invalid/missing dueDate:', task);
+        }
+      });
+
       return {
         ...state,
         gardens: action.payload.gardens,
@@ -291,13 +305,18 @@ const gardenReducer = (state: GardenState, action: GardenAction): GardenState =>
       };
 
     case 'COMPLETE_TASK':
+      const completedTasks = state.tasks.map(task => {
+        if (task.id === action.payload) {
+          const completedTask = { ...task, completed: true };
+          console.log('Completing task:', task.title, 'Original dueDate:', task.dueDate, 'Completed task dueDate:', completedTask.dueDate);
+          return completedTask;
+        }
+        return task;
+      });
+
       return {
         ...state,
-        tasks: state.tasks.map(task =>
-          task.id === action.payload
-            ? { ...task, completed: true }
-            : task
-        ),
+        tasks: completedTasks,
       };
 
     case 'ADD_ACTIVITY':
@@ -431,14 +450,44 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const saveDataToFirebase = async () => {
       try {
+        // Don't save if we haven't loaded data yet (prevents clearing database on app start)
+        const hasLoadedData = state.gardens.length > 0 || state.tasks.length > 0 ||
+                             state.notifications.length > 0 || state.activities.length > 0;
+
+        if (!hasLoadedData) {
+          console.log('Skipping save - no data loaded yet');
+          return;
+        }
+
+        console.log('Saving data to Firebase:', {
+          gardens: state.gardens.length,
+          tasks: state.tasks.length,
+          notifications: state.notifications.length,
+          activities: state.activities.length,
+          userId: currentUser.uid
+        });
+
         await Promise.all([
           saveGardensToFirebase(currentUser.uid, state.gardens),
           saveTasksToFirebase(currentUser.uid, state.tasks),
           saveNotificationsToFirebase(currentUser.uid, state.notifications),
           saveActivitiesToFirebase(currentUser.uid, state.activities)
         ]);
+
+        console.log('Successfully saved all data to Firebase');
       } catch (error) {
         console.error('Error saving data to Firebase:', error);
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          userId: currentUser.uid,
+          dataCount: {
+            gardens: state.gardens.length,
+            tasks: state.tasks.length,
+            notifications: state.notifications.length,
+            activities: state.activities.length
+          }
+        });
       }
     };
 
@@ -531,14 +580,41 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Helper methods
   const getTodaysTasks = useCallback((): Task[] => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+
+    console.log('getTodaysTasks: checking for today:', today.toDateString());
+    console.log('getTodaysTasks: current date/time:', now);
 
     return state.tasks.filter(task => {
-      const taskDate = new Date(task.dueDate);
-      return !task.completed && taskDate >= today && taskDate < tomorrow;
+      if (!task.dueDate || task.completed) {
+        return false;
+      }
+
+      // Ensure we have a proper Date object
+      const taskDate = task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate);
+
+      // Check if task date is valid
+      if (isNaN(taskDate.getTime())) {
+        console.log(`getTodaysTasks: Invalid date for task ${task.title}:`, task.dueDate);
+        return false;
+      }
+
+      // Compare only the date part (ignore time)
+      const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+      const isToday = taskDateOnly.getTime() === today.getTime();
+
+      console.log(`getTodaysTasks: ${task.title}`, {
+        taskDueDate: task.dueDate,
+        taskDateOnly: taskDateOnly.toDateString(),
+        today: today.toDateString(),
+        isToday: isToday,
+        taskDateMillis: taskDateOnly.getTime(),
+        todayMillis: today.getTime()
+      });
+
+      return isToday;
     });
   }, [state.tasks]);
 

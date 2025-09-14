@@ -8,52 +8,50 @@ import { useGarden } from "@/contexts/GardenContext";
 import { toast } from "@/hooks/use-toast";
 
 const TasksPage = () => {
-  const { state, completeTask } = useGarden();
+  const { state, completeTask, getTodaysTasks, getUpcomingTasks } = useGarden();
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'overdue'>('all');
+  const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'overdue' | 'completed'>('all');
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Use consistent date logic
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const filteredTasks = state.tasks.filter(task => {
-    if (task.completed) return false;
-
-    const taskDate = new Date(task.dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-
-    switch (filter) {
-      case 'today':
-        return taskDate.getTime() === today.getTime();
-      case 'upcoming':
-        return taskDate > today;
-      case 'overdue':
-        return taskDate < today;
-      default:
-        return true;
-    }
-  }).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-  const todayTasks = state.tasks.filter(task => {
-    if (task.completed) return false;
-    const taskDate = new Date(task.dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-    return taskDate.getTime() === today.getTime();
-  });
+  // Use context functions for consistency
+  const todayTasks = getTodaysTasks();
+  const upcomingTasks = getUpcomingTasks();
 
   const overdueTasks = state.tasks.filter(task => {
-    if (task.completed) return false;
-    const taskDate = new Date(task.dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-    return taskDate < today;
+    if (task.completed || !task.dueDate) return false;
+
+    const taskDate = task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate);
+    if (isNaN(taskDate.getTime())) return false;
+
+    const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+    return taskDateOnly.getTime() < today.getTime();
   });
 
-  const upcomingTasks = state.tasks.filter(task => {
-    if (task.completed) return false;
-    const taskDate = new Date(task.dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-    return taskDate > today;
+  const completedTasks = state.tasks.filter(task => task.completed);
+
+  const filteredTasks = (() => {
+    switch (filter) {
+      case 'today':
+        return todayTasks;
+      case 'upcoming':
+        return upcomingTasks;
+      case 'overdue':
+        return overdueTasks;
+      case 'completed':
+        return completedTasks;
+      default:
+        return [...todayTasks, ...upcomingTasks, ...overdueTasks];
+    }
+  })().sort((a, b) => {
+    // For completed tasks, sort by completion date (most recent first)
+    if (filter === 'completed') {
+      return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    }
+    // For other tasks, sort by due date (earliest first)
+    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
   });
 
   const handleCompleteTask = (taskId: string) => {
@@ -123,15 +121,21 @@ const TasksPage = () => {
   };
 
   const isOverdue = (dueDate: Date) => {
-    const taskDate = new Date(dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-    return taskDate < today;
+    if (!dueDate) return false;
+    const taskDate = dueDate instanceof Date ? dueDate : new Date(dueDate);
+    if (isNaN(taskDate.getTime())) return false;
+
+    const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+    return taskDateOnly.getTime() < today.getTime();
   };
 
   const isToday = (dueDate: Date) => {
-    const taskDate = new Date(dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-    return taskDate.getTime() === today.getTime();
+    if (!dueDate) return false;
+    const taskDate = dueDate instanceof Date ? dueDate : new Date(dueDate);
+    if (isNaN(taskDate.getTime())) return false;
+
+    const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+    return taskDateOnly.getTime() === today.getTime();
   };
 
   return (
@@ -175,10 +179,13 @@ const TasksPage = () => {
             <p className="text-xs sm:text-sm text-foreground-secondary">Nadchodzące</p>
           </div>
         </Card>
-        <Card className="glass rounded-xl p-3 sm:p-4">
+        <Card
+          className={`glass rounded-xl p-3 sm:p-4 ${filter === 'completed' ? '' : 'cursor-pointer glass-hover'}`}
+          onClick={filter !== 'completed' ? () => setFilter('completed') : undefined}
+        >
           <div className="text-center">
-            <p className="text-xl sm:text-2xl font-bold text-gray-500">
-              {state.tasks.filter(t => t.completed).length}
+            <p className="text-xl sm:text-2xl font-bold text-emerald">
+              {completedTasks.length}
             </p>
             <p className="text-xs sm:text-sm text-foreground-secondary">Ukończone</p>
           </div>
@@ -188,10 +195,11 @@ const TasksPage = () => {
       {/* Filter Buttons */}
       <div className="flex flex-wrap gap-2">
         {[
-          { key: 'all', label: 'Wszystkie', count: filteredTasks.length },
+          { key: 'all', label: 'Wszystkie', count: filter === 'all' ? filteredTasks.length : todayTasks.length + upcomingTasks.length + overdueTasks.length },
           { key: 'today', label: 'Dzisiaj', count: todayTasks.length },
           { key: 'overdue', label: 'Zaległe', count: overdueTasks.length },
-          { key: 'upcoming', label: 'Nadchodzące', count: upcomingTasks.length }
+          { key: 'upcoming', label: 'Nadchodzące', count: upcomingTasks.length },
+          { key: 'completed', label: 'Ukończone', count: completedTasks.length }
         ].map(({ key, label, count }) => (
           <Button
             key={key}
@@ -267,14 +275,21 @@ const TasksPage = () => {
                     </div>
                   </div>
                   
-                  <Button
-                    size="sm"
-                    onClick={() => handleCompleteTask(task.id)}
-                    className="bg-emerald hover:bg-emerald-light emerald-glow flex-shrink-0 ml-2"
-                  >
-                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    <span className="hidden sm:inline">Gotowe</span>
-                  </Button>
+                  {task.completed ? (
+                    <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
+                      <CheckCircle className="h-4 w-4 text-emerald" />
+                      <span className="text-xs text-emerald font-medium">Ukończone</span>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => handleCompleteTask(task.id)}
+                      className="bg-emerald hover:bg-emerald-light emerald-glow flex-shrink-0 ml-2"
+                    >
+                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                      <span className="hidden sm:inline">Gotowe</span>
+                    </Button>
+                  )}
                 </div>
               </Card>
             );
@@ -288,13 +303,15 @@ const TasksPage = () => {
               <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-emerald" />
             </div>
             <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-              {filter === 'all' ? 'Brak zadań' : 
+              {filter === 'all' ? 'Brak zadań' :
                filter === 'today' ? 'Brak zadań na dziś' :
                filter === 'overdue' ? 'Brak zaległych zadań' :
-               'Brak nadchodzących zadań'}
+               filter === 'upcoming' ? 'Brak nadchodzących zadań' :
+               'Brak ukończonych zadań'}
             </h3>
             <p className="text-sm sm:text-base text-foreground-secondary mb-4">
               {filter === 'all' ? 'Dodaj nowe zadanie aby rozpocząć organizację prac w ogrodzie.' :
+               filter === 'completed' ? 'Ukończ kilka zadań aby zobaczyć je tutaj.' :
                'Przejdź do innej kategorii lub dodaj nowe zadanie.'}
             </p>
             <Link to="/tasks/new">

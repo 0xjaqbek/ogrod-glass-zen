@@ -96,7 +96,7 @@ const Layout = () => {
           bed.plants.forEach(plant => {
             const needsWatering = !plant.lastWatered || new Date(plant.lastWatered) < threeDaysAgo;
             const hasWateringNotification = state.notifications.some(n =>
-              n.message.includes(plant.name) && n.type === 'reminder' && !n.read
+              n.message.includes(plant.name) && n.type === 'reminder'
             );
 
             if (needsWatering && !hasWateringNotification) {
