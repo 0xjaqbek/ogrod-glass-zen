@@ -55,21 +55,6 @@ const SettingsScreen = () => {
     localStorage.setItem('ogrod-settings', JSON.stringify(localSettings));
   }, [localSettings]);
 
-  // Apply theme class to body
-  useEffect(() => {
-    const body = document.body;
-    if (localSettings.colorScheme === 'reversed') {
-      body.classList.add('theme-reversed');
-    } else {
-      body.classList.remove('theme-reversed');
-    }
-
-    // Cleanup on unmount
-    return () => {
-      body.classList.remove('theme-reversed');
-    };
-  }, [localSettings.colorScheme]);
-
   const handleSettingChange = (key: string, value: any) => {
     if (key.includes('.')) {
       const [parent, child] = key.split('.');
@@ -371,7 +356,6 @@ const SettingsScreen = () => {
       {/* Header */}
       <div>
         <h1 className="text-lg sm:text-2xl font-bold text-foreground">Ustawienia</h1>
-        <p className="text-sm sm:text-base text-foreground-secondary">Personalizuj swoją aplikację</p>
       </div>
 
       {/* App Summary */}

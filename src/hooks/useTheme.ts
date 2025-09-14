@@ -2,19 +2,21 @@ import { useEffect, useState } from 'react';
 
 type ColorScheme = 'normal' | 'reversed';
 
-export const useTheme = () => {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
-    const saved = localStorage.getItem('ogrod-settings');
-    if (saved) {
-      try {
-        const settings = JSON.parse(saved);
-        return settings.colorScheme || 'normal';
-      } catch {
-        return 'normal';
-      }
+const getColorSchemeFromStorage = (): ColorScheme => {
+  const saved = localStorage.getItem('ogrod-settings');
+  if (saved) {
+    try {
+      const settings = JSON.parse(saved);
+      return settings.colorScheme || 'normal';
+    } catch {
+      return 'normal';
     }
-    return 'normal';
-  });
+  }
+  return 'normal';
+};
+
+export const useTheme = () => {
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(getColorSchemeFromStorage);
 
   // Apply theme class to body
   useEffect(() => {
@@ -36,26 +38,21 @@ export const useTheme = () => {
 
     // Also listen for changes in localStorage from other components
     const handleStorageChange = () => {
-      const saved = localStorage.getItem('ogrod-settings');
-      if (saved) {
-        try {
-          const settings = JSON.parse(saved);
-          const newColorScheme = settings.colorScheme || 'normal';
-          if (newColorScheme !== colorScheme) {
-            console.log('Theme changed via storage:', newColorScheme); // Debug log
-            setColorScheme(newColorScheme);
-          }
-        } catch {
-          setColorScheme('normal');
-        }
+      const newColorScheme = getColorSchemeFromStorage();
+      if (newColorScheme !== colorScheme) {
+        console.log('Theme changed via storage:', newColorScheme); // Debug log
+        setColorScheme(newColorScheme);
       }
     };
 
     // Listen for storage events (from other tabs/windows)
     window.addEventListener('storage', handleStorageChange);
 
-    // Also check for localStorage changes periodically (for same tab changes)
-    const interval = setInterval(handleStorageChange, 100);
+    // Check for localStorage changes more frequently (for same tab changes)
+    const interval = setInterval(handleStorageChange, 50);
+
+    // Also check immediately when the effect runs
+    handleStorageChange();
 
     return () => {
       body.classList.remove('theme-reversed');
