@@ -324,15 +324,11 @@ const SettingsScreen = () => {
       icon: User,
       items: [
         {
-          label: "Schemat kolorów",
-          description: "Przełącz między normalnym a odwróconym motywem",
-          hasSelect: true,
-          value: localSettings.colorScheme,
-          options: [
-            { value: 'normal', label: 'Ciemny' },
-            { value: 'reversed', label: 'Jasny' }
-          ],
-          onChange: (value: string) => handleSettingChange('colorScheme', value)
+          label: "Tryb ciemny/jasny",
+          description: "Przełącz między ciemnym a jasnym motywem",
+          hasSwitch: true,
+          enabled: localSettings.colorScheme === 'reversed',
+          onChange: (checked: boolean) => handleSettingChange('colorScheme', checked ? 'reversed' : 'normal')
         },
         {
           label: "Informacje o profilu",
