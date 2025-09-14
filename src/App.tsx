@@ -8,6 +8,7 @@ import { GardenProvider } from "@/contexts/GardenContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { initializeNotifications } from "@/lib/notificationService";
+import { useTheme } from "@/hooks/useTheme";
 
 // Pages and Components
 import Layout from "@/components/Layout";
@@ -142,18 +143,23 @@ const AppRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <GardenProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AppRoutes />
-        </TooltipProvider>
-      </GardenProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Initialize theme on app start
+  useTheme();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <GardenProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </TooltipProvider>
+        </GardenProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

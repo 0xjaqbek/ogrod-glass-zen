@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info, LogOut } from "lucide-react";
+import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info, LogOut, ChevronDown, ChevronUp } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
 const SettingsScreen = () => {
@@ -20,17 +20,28 @@ const SettingsScreen = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isClearDataOpen, setIsClearDataOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
+    dataManagement: false,
+    notifications: false,
+    preferences: false,
+  });
   
-  // Local settings state (could be stored in localStorage later)
-  const [localSettings, setLocalSettings] = useState({
-    notifications: {
-      wateringReminders: true,
-      taskReminders: true,
-      harvestAlerts: true,
-    },
-    language: 'pl' as const,
-    units: 'metric' as const,
-    theme: 'dark' as const,
+  // Local settings state - now with localStorage persistence
+  const [localSettings, setLocalSettings] = useState(() => {
+    const saved = localStorage.getItem('ogrod-settings');
+    return saved ? JSON.parse(saved) : {
+      notifications: {
+        wateringReminders: true,
+        taskReminders: true,
+        harvestAlerts: true,
+      },
+      language: 'pl' as const,
+      units: 'metric' as const,
+      theme: 'dark' as const,
+      colorScheme: 'normal' as const,
+    };
   });
 
   const [profileData, setProfileData] = useState({
@@ -38,6 +49,26 @@ const SettingsScreen = () => {
     email: '',
     location: '',
   });
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('ogrod-settings', JSON.stringify(localSettings));
+  }, [localSettings]);
+
+  // Apply theme class to body
+  useEffect(() => {
+    const body = document.body;
+    if (localSettings.colorScheme === 'reversed') {
+      body.classList.add('theme-reversed');
+    } else {
+      body.classList.remove('theme-reversed');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      body.classList.remove('theme-reversed');
+    };
+  }, [localSettings.colorScheme]);
 
   const handleSettingChange = (key: string, value: any) => {
     if (key.includes('.')) {
@@ -224,6 +255,13 @@ const SettingsScreen = () => {
     }
   };
 
+  const toggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
+
   const getAppInfo = () => {
     return {
       gardens: state.gardens.length,
@@ -242,6 +280,7 @@ const SettingsScreen = () => {
 
   const settingSections = [
     {
+      key: "dataManagement",
       title: "Zarządzanie danymi",
       icon: Settings,
       items: [
@@ -267,7 +306,8 @@ const SettingsScreen = () => {
       ]
     },
     {
-      title: "Powiadomienia", 
+      key: "notifications",
+      title: "Powiadomienia",
       icon: Bell,
       items: [
         { 
@@ -294,30 +334,20 @@ const SettingsScreen = () => {
       ]
     },
     {
+      key: "preferences",
       title: "Preferencje",
-      icon: User, 
+      icon: User,
       items: [
-        { 
-          label: "Język", 
-          description: "Wybierz język aplikacji",
+        {
+          label: "Schemat kolorów",
+          description: "Przełącz między normalnym a odwróconym motywem",
           hasSelect: true,
-          value: localSettings.language,
+          value: localSettings.colorScheme,
           options: [
-            { value: 'pl', label: 'Polski' },
-            { value: 'en', label: 'English' }
+            { value: 'normal', label: 'Ciemny' },
+            { value: 'reversed', label: 'Jasny' }
           ],
-          onChange: (value: string) => handleSettingChange('language', value)
-        },
-        { 
-          label: "Jednostki", 
-          description: "System jednostek miar",
-          hasSelect: true,
-          value: localSettings.units,
-          options: [
-            { value: 'metric', label: 'Metryczne (cm, l)' },
-            { value: 'imperial', label: 'Imperialne (in, gal)' }
-          ],
-          onChange: (value: string) => handleSettingChange('units', value)
+          onChange: (value: string) => handleSettingChange('colorScheme', value)
         },
         {
           label: "Informacje o profilu",
@@ -346,9 +376,7 @@ const SettingsScreen = () => {
 
       {/* App Summary */}
       <Card className="glass rounded-xl p-3 sm:p-6">
-        <h3 className="text-sm sm:text-base font-semibold text-foreground mb-3">
-          Podsumowanie aplikacji
-        </h3>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
             <div className="text-lg sm:text-2xl font-bold text-emerald">{appInfo.gardens}</div>
@@ -369,71 +397,88 @@ const SettingsScreen = () => {
         </div>
       </Card>
 
-      {/* Settings Sections */}
+      {/* Settings Sections - Collapsible */}
       <div className="space-y-4 sm:space-y-6">
         {settingSections.map((section) => {
           const Icon = section.icon;
+          const isExpanded = expandedSections[section.key];
+          const ChevronIcon = isExpanded ? ChevronUp : ChevronDown;
+
           return (
-            <div key={section.title} className="space-y-2 sm:space-y-3">
-              <div className="flex items-center space-x-2">
-                <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-emerald flex-shrink-0" />
-                <h2 className="text-base sm:text-lg font-semibold text-foreground">{section.title}</h2>
-              </div>
-              <Card className="glass rounded-xl p-0 overflow-hidden">
-                {section.items.map((item, index) => (
-                  <div key={index}>
-                    <div 
-                      className={`
-                        flex items-center justify-between p-3 sm:p-4 transition-colors
-                        ${item.action ? 'cursor-pointer hover:bg-glass-hover' : ''}
-                        ${item.danger ? 'hover:bg-red-500/10' : ''}
-                      `}
-                      onClick={item.action}
-                    >
-                      <div className="min-w-0 flex-1 mr-3">
-                        <div className={`text-sm sm:text-base font-medium ${item.danger ? 'text-red-400' : 'text-foreground'}`}>
-                          {item.label}
-                        </div>
-                        {item.description && (
-                          <div className="text-xs sm:text-sm text-foreground-secondary mt-1">
-                            {item.description}
+            <div key={section.key} className="space-y-2 sm:space-y-3">
+              {/* Section Header Button */}
+              <button
+                onClick={() => toggleSection(section.key)}
+                className="w-full flex items-center justify-between p-4 glass rounded-xl hover:bg-glass-hover transition-all duration-300 group"
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-emerald flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground">{section.title}</h2>
+                </div>
+                <ChevronIcon className={`h-5 w-5 text-foreground-secondary transition-transform duration-300 ${isExpanded ? 'rotate-0' : 'rotate-0'}`} />
+              </button>
+
+              {/* Collapsible Content */}
+              <div className={`
+                transition-all duration-300 ease-out overflow-hidden
+                ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+              `}>
+                <Card className="glass rounded-xl p-0 overflow-hidden">
+                  {section.items.map((item, index) => (
+                    <div key={index}>
+                      <div
+                        className={`
+                          flex items-center justify-between p-3 sm:p-4 transition-colors
+                          ${item.action ? 'cursor-pointer hover:bg-glass-hover' : ''}
+                          ${item.danger ? 'hover:bg-red-500/10' : ''}
+                        `}
+                        onClick={item.action}
+                      >
+                        <div className="min-w-0 flex-1 mr-3">
+                          <div className={`text-sm sm:text-base font-medium ${item.danger ? 'text-red-400' : 'text-foreground'}`}>
+                            {item.label}
                           </div>
-                        )}
+                          {item.description && (
+                            <div className="text-xs sm:text-sm text-foreground-secondary mt-1">
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          {item.hasArrow && (
+                            <ArrowRight className={`h-4 w-4 sm:h-5 sm:w-5 ${item.danger ? 'text-red-400' : 'text-foreground-secondary'}`} />
+                          )}
+                          {item.hasSwitch && (
+                            <Switch
+                              checked={item.enabled}
+                              onCheckedChange={item.onChange}
+                              className="data-[state=checked]:bg-emerald"
+                            />
+                          )}
+                          {item.hasSelect && (
+                            <Select value={item.value} onValueChange={item.onChange}>
+                              <SelectTrigger className="glass w-32 sm:w-40">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="glass">
+                                {item.options?.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-2 flex-shrink-0">
-                        {item.hasArrow && (
-                          <ArrowRight className={`h-4 w-4 sm:h-5 sm:w-5 ${item.danger ? 'text-red-400' : 'text-foreground-secondary'}`} />
-                        )}
-                        {item.hasSwitch && (
-                          <Switch 
-                            checked={item.enabled} 
-                            onCheckedChange={item.onChange}
-                            className="data-[state=checked]:bg-emerald"
-                          />
-                        )}
-                        {item.hasSelect && (
-                          <Select value={item.value} onValueChange={item.onChange}>
-                            <SelectTrigger className="glass w-32 sm:w-40">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="glass">
-                              {item.options?.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
+                      {index < section.items.length - 1 && (
+                        <Separator className="bg-glass-border" />
+                      )}
                     </div>
-                    {index < section.items.length - 1 && (
-                      <Separator className="bg-glass-border" />
-                    )}
-                  </div>
-                ))}
-              </Card>
+                  ))}
+                </Card>
+              </div>
             </div>
           );
         })}
