@@ -408,44 +408,6 @@ const SettingsScreen = () => {
           onChange: (checked: boolean) => handleSettingChange('notifications.groupSimilarNotifications', checked)
         },
 
-        // Plant-specific settings
-        {
-          type: 'divider',
-          label: 'Ustawienia specyficzne dla roślin'
-        },
-        {
-          label: "Indywidualne czasy dla roślin",
-          description: "Różne czasy powiadomień dla różnych typów roślin",
-          hasSwitch: true,
-          enabled: localSettings.notifications.enablePlantSpecificTiming,
-          onChange: (checked: boolean) => handleSettingChange('notifications.enablePlantSpecificTiming', checked)
-        },
-        ...(localSettings.notifications.enablePlantSpecificTiming ? [
-          {
-            label: "Warzywa",
-            hasSwitch: true,
-            enabled: localSettings.notifications.plantNotificationCategories.vegetables,
-            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.vegetables', checked)
-          },
-          {
-            label: "Owoce",
-            hasSwitch: true,
-            enabled: localSettings.notifications.plantNotificationCategories.fruits,
-            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.fruits', checked)
-          },
-          {
-            label: "Zioła",
-            hasSwitch: true,
-            enabled: localSettings.notifications.plantNotificationCategories.herbs,
-            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.herbs', checked)
-          },
-          {
-            label: "Kwiaty",
-            hasSwitch: true,
-            enabled: localSettings.notifications.plantNotificationCategories.flowers,
-            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.flowers', checked)
-          }
-        ] : [])
       ]
     },
     {

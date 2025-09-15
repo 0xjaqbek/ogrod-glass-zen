@@ -260,35 +260,39 @@ const TasksPage = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center mt-2 text-xs text-foreground-secondary">
-                        {isOverdue(task.dueDate) && (
-                          <AlertCircle className="h-3 w-3 mr-1 text-red-500" />
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center text-xs text-foreground-secondary">
+                          {isOverdue(task.dueDate) && (
+                            <AlertCircle className="h-3 w-3 mr-1 text-red-500" />
+                          )}
+                          {isToday(task.dueDate) && (
+                            <Clock className="h-3 w-3 mr-1 text-emerald" />
+                          )}
+                          <Calendar className="h-3 w-3 mr-1" />
+                          <span className={isOverdue(task.dueDate) ? 'text-red-500 font-medium' : ''}>
+                            Do wykonania {isOverdue(task.dueDate) ? 'od' : isToday(task.dueDate) ? 'dziś' : 'za'}: {formatDate(task.dueDate)}
+                          </span>
+                        </div>
+
+                        {!task.completed && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleCompleteTask(task.id)}
+                            className="bg-emerald hover:bg-emerald-light emerald-glow text-xs h-7"
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Oznacz jako gotowe
+                          </Button>
                         )}
-                        {isToday(task.dueDate) && (
-                          <Clock className="h-3 w-3 mr-1 text-emerald" />
-                        )}
-                        <Calendar className="h-3 w-3 mr-1" />
-                        <span className={isOverdue(task.dueDate) ? 'text-red-500 font-medium' : ''}>
-                          {formatDate(task.dueDate)}
-                        </span>
                       </div>
                     </div>
                   </div>
                   
-                  {task.completed ? (
+                  {task.completed && (
                     <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
                       <CheckCircle className="h-4 w-4 text-emerald" />
                       <span className="text-xs text-emerald font-medium">Ukończone</span>
                     </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => handleCompleteTask(task.id)}
-                      className="bg-emerald hover:bg-emerald-light emerald-glow flex-shrink-0 ml-2"
-                    >
-                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      <span className="hidden sm:inline">Gotowe</span>
-                    </Button>
                   )}
                 </div>
               </Card>
