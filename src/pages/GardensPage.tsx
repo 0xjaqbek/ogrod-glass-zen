@@ -1,5 +1,5 @@
 // src/pages/GardensPage.tsx
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Sprout, ArrowRight } from "lucide-react";
@@ -9,13 +9,15 @@ import { useEffect } from "react";
 const GardensPage = () => {
   const { state } = useGarden();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Auto-redirect to garden detail if only one garden exists
+  // Auto-redirect to garden detail if only one garden exists, unless forced to show list
   useEffect(() => {
-    if (state.gardens.length === 1) {
+    const forceList = searchParams.get('list') === 'true';
+    if (state.gardens.length === 1 && !forceList) {
       navigate(`/gardens/${state.gardens[0].id}`, { replace: true });
     }
-  }, [state.gardens, navigate]);
+  }, [state.gardens, navigate, searchParams]);
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">

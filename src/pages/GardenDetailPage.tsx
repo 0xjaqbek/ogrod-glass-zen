@@ -19,7 +19,7 @@ const GardenDetailPage = () => {
     if (gardenId && garden) {
       dispatch({ type: 'SELECT_GARDEN', payload: garden });
     } else if (gardenId && !garden) {
-      navigate('/gardens');
+      navigate('/gardens?list=true');
     }
   }, [gardenId, garden, dispatch, navigate]);
 
@@ -30,7 +30,7 @@ const GardenDetailPage = () => {
         title: "Ogród usunięty",
         description: `Ogród "${garden.name}" został usunięty`,
       });
-      navigate('/gardens');
+      navigate('/gardens?list=true');
     }
   };
 
@@ -39,7 +39,7 @@ const GardenDetailPage = () => {
   };
 
   if (!gardenId) {
-    navigate('/gardens');
+    navigate('/gardens?list=true');
     return null;
   }
 
@@ -48,7 +48,7 @@ const GardenDetailPage = () => {
       <div className="flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg text-foreground-secondary">Ogród nie znaleziony</p>
-          <Link to="/gardens">
+          <Link to="/gardens?list=true">
             <Button className="mt-4">Powrót do ogrodów</Button>
           </Link>
         </div>
@@ -63,10 +63,10 @@ const GardenDetailPage = () => {
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3 sm:space-x-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/gardens')}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/gardens?list=true')}
           className="glass-button h-8 w-8 sm:h-10 sm:w-10"
         >
           <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />

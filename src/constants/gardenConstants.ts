@@ -211,6 +211,123 @@ export const PLANT_TYPES = [
     ]
   },
   {
+    name: 'Malina',
+    emoji: '🫐',
+    category: 'Owoce',
+    growthDays: 365,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie pędów', 'Zbierz owoce'],
+    tips: [
+      'Roślina wieloletnia - owocuje w drugim roku',
+      'Przycinaj stare pędy po zbiorach',
+      'Podwiązuj do kratownic lub słupów'
+    ]
+  },
+  {
+    name: 'Porzeczka',
+    emoji: '🫐',
+    category: 'Owoce',
+    growthDays: 730,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie krzewu', 'Zbierz grona'],
+    tips: [
+      'Krzew wieloletni - plonuje od 3 roku',
+      'Przycinaj stare gałęzie zimą',
+      'Lubi wilgotne, żyzne stanowiska'
+    ]
+  },
+  {
+    name: 'Agrest',
+    emoji: '🫐',
+    category: 'Owoce',
+    growthDays: 730,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Podlej roślinę', 'Przycinanie krzewu', 'Zbierz owoce'],
+    tips: [
+      'Krzew wieloletni z kolcami',
+      'Zbieraj gdy owoce są miękkie',
+      'Chrońić przed amerykańskim mączniakiem'
+    ]
+  },
+  {
+    name: 'Borówka',
+    emoji: '🫐',
+    category: 'Owoce',
+    growthDays: 1095,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Podlej miękką wodą', 'Okwasić glebę', 'Zbierz owoce'],
+    tips: [
+      'Wymaga kwaśnej gleby (pH 4,5-5,5)',
+      'Podlewaj wodą bez wapnia',
+      'Mulczuj korą iglastą lub torfem'
+    ]
+  },
+  {
+    name: 'Winogrono',
+    emoji: '🍇',
+    category: 'Owoce',
+    growthDays: 1460,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Przycinanie winorośli', 'Podwiązywanie pędów', 'Zbierz grona'],
+    tips: [
+      'Wymaga słonecznego, osłoniętego stanowiska',
+      'Przycinaj zimą lub wczesną wiosną',
+      'Zabezpiecz na zimę w pierwszych latach'
+    ]
+  },
+  {
+    name: 'Jabłoń',
+    emoji: '🍎',
+    category: 'Owoce',
+    growthDays: 1825,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Przycinanie drzewa', 'Nawożenie', 'Zbierz jabłka'],
+    tips: [
+      'Drzewo wieloletnie - plonuje od 3-5 roku',
+      'Przycinaj zimą w bezlistnej porze',
+      'Przerzedzaj owoce dla lepszej jakości'
+    ]
+  },
+  {
+    name: 'Grusza',
+    emoji: '🍐',
+    category: 'Owoce',
+    growthDays: 1825,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Przycinanie drzewa', 'Nawożenie', 'Zbierz gruszki'],
+    tips: [
+      'Wymaga ciepłego, osłoniętego stanowiska',
+      'Zbieraj niedojrzałe - dojrzewają po zerwaniu',
+      'Chrońć przed zarazą ogniową'
+    ]
+  },
+  {
+    name: 'Śliwka',
+    emoji: '🍇',
+    category: 'Owoce',
+    growthDays: 1460,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Dojrzewanie', 'Zbiory'],
+    tasks: ['Przycinanie drzewa', 'Nawożenie', 'Zbierz śliwki'],
+    tips: [
+      'Przycinaj latem po zbiorach',
+      'Przerzedzaj owoce gdy są małe',
+      'Niektóre odmiany wymagają zapylaczy'
+    ]
+  },
+  {
+    name: 'Wiśnia',
+    emoji: '🍒',
+    category: 'Owoce',
+    growthDays: 1460,
+    phases: ['Sadzonki', 'Wzrost', 'Kwitnienie', 'Owocowanie', 'Zbiory'],
+    tasks: ['Przycinanie drzewa', 'Ochrona przed ptakami', 'Zbierz wiśnie'],
+    tips: [
+      'Przycinaj bezpośrednio po zbiorach',
+      'Chroń dojrzewające owoce przed ptakami',
+      'Zbieraj z ogonkami dla dłuższej świeżości'
+    ]
+  },
+  {
     name: 'Cukinia',
     emoji: '🥒',
     category: 'Warzywa owocowe',
@@ -463,6 +580,33 @@ export const NOTIFICATION_TYPES = [
   { value: 'task', label: 'Zadanie', icon: '📋', color: 'emerald' },
   { value: 'reminder', label: 'Przypomnienie', icon: '⏰', color: 'orange' },
   { value: 'alert', label: 'Alert', icon: '⚠️', color: 'red' },
+  { value: 'watering', label: 'Podlewanie', icon: '💧', color: 'blue' },
+  { value: 'harvest', label: 'Zbiory', icon: '🥕', color: 'yellow' },
+  { value: 'weather', label: 'Pogoda', icon: '🌤️', color: 'gray' },
+  { value: 'phase', label: 'Faza wzrostu', icon: '🌱', color: 'green' },
+] as const;
+
+export const NOTIFICATION_FREQUENCIES = [
+  { value: 'daily', label: 'Codziennie', description: 'Powiadomienia każdego dnia' },
+  { value: 'every2days', label: 'Co 2 dni', description: 'Powiadomienia co drugi dzień' },
+  { value: 'weekly', label: 'Tygodniowo', description: 'Powiadomienia raz w tygodniu' },
+  { value: 'custom', label: 'Niestandardowo', description: 'Ustaw własną liczbę dni' },
+] as const;
+
+export const NOTIFICATION_ADVANCE_OPTIONS = [
+  { value: 0, label: 'W dniu zadania' },
+  { value: 1, label: '1 dzień wcześniej' },
+  { value: 2, label: '2 dni wcześniej' },
+  { value: 3, label: '3 dni wcześniej' },
+  { value: 7, label: '1 tydzień wcześniej' },
+] as const;
+
+export const SNOOZE_TIME_OPTIONS = [
+  { value: 15, label: '15 minut' },
+  { value: 30, label: '30 minut' },
+  { value: 60, label: '1 godzina' },
+  { value: 120, label: '2 godziny' },
+  { value: 240, label: '4 godziny' },
 ] as const;
 
 export const PLANT_CATEGORIES = [
@@ -564,15 +708,44 @@ export const COMPANION_PLANTING = {
 
 export const DEFAULT_SETTINGS = {
   notifications: {
+    // Basic notification types
     wateringReminders: true,
     taskReminders: true,
     harvestAlerts: true,
+    weatherAlerts: true,
+    plantPhaseAlerts: true,
+
+    // Timing settings
+    reminderTime: '08:00',
+    snoozeTime: 30, // minutes
+    quietHoursEnabled: false,
+    quietHoursStart: '22:00',
+    quietHoursEnd: '07:00',
+
+    // Frequency settings
+    customWateringDays: 3, // days between watering notifications
+    taskAdvanceNotice: 1, // days before task due
+    harvestAdvanceNotice: 3, // days before estimated harvest
+
+    // Priority and display settings
+    highPrioritySound: true,
+    showBadgeCount: true,
+    groupSimilarNotifications: true,
+
+    // Specific plant notifications
+    enablePlantSpecificTiming: false,
+    plantNotificationCategories: {
+      vegetables: true,
+      fruits: true,
+      herbs: true,
+      flowers: false,
+    },
   },
   units: 'metric' as const,
   language: 'pl' as const,
   theme: 'dark' as const,
   autoAdvancePhases: true,
-  reminderTime: '08:00',
+  reminderTime: '08:00', // Deprecated - moved to notifications.reminderTime
   harvestWindow: 7, // days before/after estimated harvest
 } as const;
 

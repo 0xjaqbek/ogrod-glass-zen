@@ -322,8 +322,10 @@
   html.theme-reversed .glass,
   body.theme-reversed .glass,
   .theme-reversed .glass {
-    background: rgba(0, 0, 0, 0.08) !important;
-    border: 1px solid rgba(0, 0, 0, 0.18) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
   }
   
   .glass::before {
@@ -348,8 +350,11 @@
   html.theme-reversed .glass-elevated,
   body.theme-reversed .glass-elevated,
   .theme-reversed .glass-elevated {
-    background: rgba(0, 0, 0, 0.12) !important;
-    border: 1px solid rgba(0, 0, 0, 0.20) !important;
+    background: rgba(0, 0, 0, 0.02) !important;
+    backdrop-filter: blur(2px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(2px) saturate(10%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: var(--shadow-glass-lg) !important;
   }
 
   .glass-subtle {
@@ -366,7 +371,7 @@
     border: 1px solid rgba(0, 0, 0, 0.12) !important;
   }
 
-  /* Form elements in reversed (light) theme - bright glass effect */
+  /* Form elements in reversed (light) theme - white glass effect with blur */
   html.theme-reversed input.glass,
   html.theme-reversed textarea.glass,
   html.theme-reversed [data-radix-select-trigger],
@@ -376,27 +381,31 @@
   .theme-reversed input.glass,
   .theme-reversed textarea.glass,
   .theme-reversed [data-radix-select-trigger] {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(24px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-    border: 1px solid rgba(0, 0, 0, 0.3) !important;
-    color: hsl(var(--foreground)) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    color: rgba(0, 0, 0, 0.9) !important;
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   }
 
-  /* Select dropdown content in reversed theme - bright glass */
+  /* Select dropdown content in reversed theme - white glass with blur */
   html.theme-reversed [data-radix-select-content],
   html.theme-reversed [data-radix-select-viewport],
   body.theme-reversed [data-radix-select-content],
   body.theme-reversed [data-radix-select-viewport],
   .theme-reversed [data-radix-select-content],
   .theme-reversed [data-radix-select-viewport] {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(24px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-    border: 1px solid rgba(0, 0, 0, 0.3) !important;
-    color: hsl(var(--foreground)) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    color: rgba(0, 0, 0, 0.9) !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   }
 
   /* Select items in reversed theme */
@@ -404,7 +413,7 @@
   body.theme-reversed [data-radix-select-item],
   .theme-reversed [data-radix-select-item] {
     background: transparent !important;
-    color: hsl(var(--foreground)) !important;
+    color: rgba(0, 0, 0, 0.9) !important;
   }
 
   html.theme-reversed [data-radix-select-item]:hover,
@@ -413,8 +422,8 @@
   body.theme-reversed [data-radix-select-item][data-highlighted],
   .theme-reversed [data-radix-select-item]:hover,
   .theme-reversed [data-radix-select-item][data-highlighted] {
-    background: rgba(0, 0, 0, 0.08) !important;
-    color: hsl(var(--foreground)) !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: rgba(0, 0, 0, 1) !important;
   }
 
   /* Button styles in reversed theme - dark glass effect */

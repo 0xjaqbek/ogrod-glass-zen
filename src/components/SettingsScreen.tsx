@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info, LogOut, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info, LogOut, ChevronDown, ChevronUp, Clock, Volume2, Moon, Sun } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { DEFAULT_SETTINGS, NOTIFICATION_FREQUENCIES, NOTIFICATION_ADVANCE_OPTIONS, SNOOZE_TIME_OPTIONS } from "@/constants/gardenConstants";
 
 const SettingsScreen = () => {
   const { state, dispatch } = useGarden();
@@ -31,17 +32,56 @@ const SettingsScreen = () => {
   // Local settings state - now with localStorage persistence
   const [localSettings, setLocalSettings] = useState(() => {
     const saved = localStorage.getItem('ogrod-settings');
-    return saved ? JSON.parse(saved) : {
+    const defaultSettings = {
       notifications: {
         wateringReminders: true,
         taskReminders: true,
         harvestAlerts: true,
+        weatherAlerts: true,
+        plantPhaseAlerts: true,
+        reminderTime: '08:00',
+        snoozeTime: 30,
+        quietHoursEnabled: false,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '07:00',
+        customWateringDays: 3,
+        taskAdvanceNotice: 1,
+        harvestAdvanceNotice: 3,
+        highPrioritySound: true,
+        showBadgeCount: true,
+        groupSimilarNotifications: true,
+        enablePlantSpecificTiming: false,
+        plantNotificationCategories: {
+          vegetables: true,
+          fruits: true,
+          herbs: true,
+          flowers: false,
+        },
       },
       language: 'pl' as const,
       units: 'metric' as const,
       theme: 'dark' as const,
       colorScheme: 'normal' as const,
     };
+
+    if (saved) {
+      const parsedSettings = JSON.parse(saved);
+      // Merge with defaults to ensure all properties exist
+      return {
+        ...defaultSettings,
+        ...parsedSettings,
+        notifications: {
+          ...defaultSettings.notifications,
+          ...parsedSettings.notifications,
+          plantNotificationCategories: {
+            ...defaultSettings.notifications.plantNotificationCategories,
+            ...parsedSettings.notifications?.plantNotificationCategories,
+          },
+        },
+      };
+    }
+
+    return defaultSettings;
   });
 
   const [profileData, setProfileData] = useState({
@@ -295,27 +335,117 @@ const SettingsScreen = () => {
       title: "Powiadomienia",
       icon: Bell,
       items: [
-        { 
-          label: "Przypomnienia o podlewaniu", 
+        // Basic notification types
+        {
+          label: "Przypomnienia o podlewaniu",
           description: "Otrzymuj powiadomienia o potrzebie podlania",
-          hasSwitch: true, 
+          hasSwitch: true,
           enabled: localSettings.notifications.wateringReminders,
           onChange: (checked: boolean) => handleSettingChange('notifications.wateringReminders', checked)
         },
-        { 
-          label: "Powiadomienia o zadaniach", 
+        {
+          label: "Powiadomienia o zadaniach",
           description: "Przypomnienia o zbliżających się zadaniach",
-          hasSwitch: true, 
+          hasSwitch: true,
           enabled: localSettings.notifications.taskReminders,
           onChange: (checked: boolean) => handleSettingChange('notifications.taskReminders', checked)
         },
-        { 
-          label: "Alerty zbiorów", 
-          description: "Powiadomienia o gotowych do zbioru roślinach",
-          hasSwitch: true, 
-          enabled: localSettings.notifications.harvestAlerts,
-          onChange: (checked: boolean) => handleSettingChange('notifications.harvestAlerts', checked)
-        }
+
+        // Timing settings
+        {
+          type: 'divider',
+          label: 'Ustawienia czasowe'
+        },
+        {
+          label: "Godzina powiadomień",
+          description: "Główna godzina wysyłania przypomnień",
+          hasTimeInput: true,
+          value: localSettings.notifications.reminderTime,
+          onChange: (value: string) => handleSettingChange('notifications.reminderTime', value)
+        },
+
+        // Frequency settings
+        {
+          type: 'divider',
+          label: 'Częstotliwość'
+        },
+        {
+          label: "Przypominaj o podlewaniu co",
+          description: "Liczba dni między powiadomieniami o podlewaniu",
+          hasNumberInput: true,
+          value: localSettings.notifications.customWateringDays,
+          min: 1,
+          max: 30,
+          suffix: "dni",
+          onChange: (value: number) => handleSettingChange('notifications.customWateringDays', value)
+        },
+        {
+          label: "Wcześniejsze powiadomienia o zadaniach",
+          description: "Ile dni przed terminem otrzymać powiadomienie",
+          hasSelect: true,
+          options: NOTIFICATION_ADVANCE_OPTIONS,
+          value: localSettings.notifications.taskAdvanceNotice,
+          onChange: (value: number) => handleSettingChange('notifications.taskAdvanceNotice', value)
+        },
+
+        // Display and priority settings
+        {
+          type: 'divider',
+          label: 'Wyświetlanie i priorytety'
+        },
+        {
+          label: "Znaczek z liczbą powiadomień",
+          description: "Pokaż liczbę nieprzeczytanych powiadomień",
+          hasSwitch: true,
+          enabled: localSettings.notifications.showBadgeCount,
+          onChange: (checked: boolean) => handleSettingChange('notifications.showBadgeCount', checked)
+        },
+        {
+          label: "Grupowanie podobnych powiadomień",
+          description: "Łącz podobne powiadomienia w grupy",
+          hasSwitch: true,
+          enabled: localSettings.notifications.groupSimilarNotifications,
+          onChange: (checked: boolean) => handleSettingChange('notifications.groupSimilarNotifications', checked)
+        },
+
+        // Plant-specific settings
+        {
+          type: 'divider',
+          label: 'Ustawienia specyficzne dla roślin'
+        },
+        {
+          label: "Indywidualne czasy dla roślin",
+          description: "Różne czasy powiadomień dla różnych typów roślin",
+          hasSwitch: true,
+          enabled: localSettings.notifications.enablePlantSpecificTiming,
+          onChange: (checked: boolean) => handleSettingChange('notifications.enablePlantSpecificTiming', checked)
+        },
+        ...(localSettings.notifications.enablePlantSpecificTiming ? [
+          {
+            label: "Warzywa",
+            hasSwitch: true,
+            enabled: localSettings.notifications.plantNotificationCategories.vegetables,
+            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.vegetables', checked)
+          },
+          {
+            label: "Owoce",
+            hasSwitch: true,
+            enabled: localSettings.notifications.plantNotificationCategories.fruits,
+            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.fruits', checked)
+          },
+          {
+            label: "Zioła",
+            hasSwitch: true,
+            enabled: localSettings.notifications.plantNotificationCategories.herbs,
+            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.herbs', checked)
+          },
+          {
+            label: "Kwiaty",
+            hasSwitch: true,
+            enabled: localSettings.notifications.plantNotificationCategories.flowers,
+            onChange: (checked: boolean) => handleSettingChange('notifications.plantNotificationCategories.flowers', checked)
+          }
+        ] : [])
       ]
     },
     {
@@ -401,62 +531,111 @@ const SettingsScreen = () => {
               {/* Collapsible Content */}
               <div className={`
                 transition-all duration-300 ease-out overflow-hidden
-                ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+                ${isExpanded ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}
               `}>
                 <Card className="glass rounded-xl p-0 overflow-hidden">
-                  {section.items.map((item, index) => (
-                    <div key={index}>
-                      <div
-                        className={`
-                          flex items-center justify-between p-3 sm:p-4 transition-colors
-                          ${item.action ? 'cursor-pointer hover:bg-glass-hover' : ''}
-                          ${item.danger ? 'hover:bg-red-500/10' : ''}
-                        `}
-                        onClick={item.action}
-                      >
-                        <div className="min-w-0 flex-1 mr-3">
-                          <div className={`text-sm sm:text-base font-medium ${item.danger ? 'text-red-400' : 'text-foreground'}`}>
-                            {item.label}
+                  {section.items.map((item, index) => {
+                    // Render divider
+                    if (item.type === 'divider') {
+                      return (
+                        <div key={index} className="px-3 sm:px-4 py-2">
+                          <div className="flex items-center space-x-3">
+                            <hr className="flex-1 border-foreground-secondary/30" />
+                            <span className="text-xs sm:text-sm font-medium text-foreground-secondary uppercase tracking-wide">
+                              {item.label}
+                            </span>
+                            <hr className="flex-1 border-foreground-secondary/30" />
                           </div>
-                          {item.description && (
-                            <div className="text-xs sm:text-sm text-foreground-secondary mt-1">
-                              {item.description}
-                            </div>
-                          )}
                         </div>
+                      );
+                    }
 
-                        <div className="flex items-center space-x-2 flex-shrink-0">
-                          {item.hasArrow && (
-                            <ArrowRight className={`h-4 w-4 sm:h-5 sm:w-5 ${item.danger ? 'text-red-400' : 'text-foreground-secondary'}`} />
-                          )}
-                          {item.hasSwitch && (
-                            <Switch
-                              checked={item.enabled}
-                              onCheckedChange={item.onChange}
-                              className="data-[state=checked]:bg-emerald"
-                            />
-                          )}
-                          {item.hasSelect && (
-                            <Select value={item.value} onValueChange={item.onChange}>
-                              <SelectTrigger className="glass w-32 sm:w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="glass">
-                                {item.options?.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
+                    return (
+                      <div key={index}>
+                        <div
+                          className={`
+                            flex items-center justify-between p-3 sm:p-4 transition-colors
+                            ${item.action ? 'cursor-pointer hover:bg-glass-hover' : ''}
+                            ${item.danger ? 'hover:bg-red-500/10' : ''}
+                          `}
+                          onClick={item.action}
+                        >
+                          <div className="min-w-0 flex-1 mr-3">
+                            <div className={`text-sm sm:text-base font-medium ${item.danger ? 'text-red-400' : 'text-foreground'}`}>
+                              {item.label}
+                            </div>
+                            {item.description && (
+                              <div className="text-xs sm:text-sm text-foreground-secondary mt-1">
+                                {item.description}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            {item.hasArrow && (
+                              <ArrowRight className={`h-4 w-4 sm:h-5 sm:w-5 ${item.danger ? 'text-red-400' : 'text-foreground-secondary'}`} />
+                            )}
+                            {item.hasSwitch && (
+                              <Switch
+                                checked={item.enabled}
+                                onCheckedChange={item.onChange}
+                                className="data-[state=checked]:bg-emerald"
+                              />
+                            )}
+                            {item.hasTimeInput && (
+                              <Input
+                                type="time"
+                                value={item.value}
+                                onChange={(e) => item.onChange?.(e.target.value)}
+                                className="glass w-24 sm:w-28"
+                              />
+                            )}
+                            {item.hasNumberInput && (
+                              <div className="flex items-center space-x-2">
+                                <Input
+                                  type="number"
+                                  value={item.value}
+                                  onChange={(e) => item.onChange?.(parseInt(e.target.value) || 1)}
+                                  min={item.min}
+                                  max={item.max}
+                                  className="glass w-16 sm:w-20"
+                                />
+                                {item.suffix && (
+                                  <span className="text-sm text-foreground-secondary">
+                                    {item.suffix}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {item.hasSelect && (
+                              <Select value={item.value?.toString()} onValueChange={(value) => item.onChange?.(isNaN(Number(value)) ? value : Number(value))}>
+                                <SelectTrigger className="glass w-32 sm:w-40">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="glass">
+                                  {item.options?.map((option) => (
+                                    <SelectItem key={option.value} value={option.value.toString()}>
+                                      <div>
+                                        <div>{option.label}</div>
+                                        {option.description && (
+                                          <div className="text-xs text-foreground-secondary">
+                                            {option.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
                         </div>
+                        {index < section.items.length - 1 && (
+                          <Separator className="bg-glass-border" />
+                        )}
                       </div>
-                      {index < section.items.length - 1 && (
-                        <Separator className="bg-glass-border" />
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </Card>
               </div>
             </div>
