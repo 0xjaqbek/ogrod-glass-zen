@@ -307,19 +307,12 @@ const TaskDetailPage = () => {
         <Card className="glass rounded-xl p-4">
           <h3 className="font-medium text-foreground mb-3">Szybkie akcje</h3>
           <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={handleCompleteTask}
-              className="bg-emerald hover:bg-emerald-light emerald-glow"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Oznacz jako gotowe
-            </Button>
             <Button variant="outline" className="glass-button">
               <Edit className="h-4 w-4 mr-2" />
               Edytuj zadanie
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleDeleteTask}
               className="glass-button text-red-500 hover:text-red-600"
             >
