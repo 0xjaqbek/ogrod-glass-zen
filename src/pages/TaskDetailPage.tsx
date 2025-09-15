@@ -172,44 +172,41 @@ const TaskDetailPage = () => {
 
       {/* Task Status */}
       {task.completed ? (
-        <Card className="glass rounded-xl p-4 border-green-200 bg-green-50">
+        <Card className="glass rounded-xl p-4 border-emerald/20">
           <div className="flex items-center space-x-3">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+            <CheckCircle className="h-6 w-6 text-emerald" />
             <div>
-              <p className="font-medium text-green-800">Zadanie ukończone</p>
-              <p className="text-sm text-green-600">To zadanie zostało już wykonane</p>
+              <p className="font-medium text-foreground">Zadanie ukończone</p>
+              <p className="text-sm text-foreground-secondary">To zadanie zostało już wykonane</p>
             </div>
           </div>
         </Card>
       ) : (
         <Card className={`glass rounded-xl p-4 ${
-          isOverdue(task.dueDate) ? 'border-red-200 bg-red-50' :
-          isToday(task.dueDate) ? 'border-emerald-200 bg-emerald-50' :
-          'border-blue-200 bg-blue-50'
+          isOverdue(task.dueDate) ? 'border-red/20' :
+          isToday(task.dueDate) ? 'border-emerald/20' :
+          'border-blue/20'
         }`}>
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
-              {isOverdue(task.dueDate) && <AlertCircle className="h-6 w-6 text-red-600" />}
-              {isToday(task.dueDate) && <Clock className="h-6 w-6 text-emerald-600" />}
-              {!isOverdue(task.dueDate) && !isToday(task.dueDate) && <Calendar className="h-6 w-6 text-blue-600" />}
+              {isOverdue(task.dueDate) && <AlertCircle className="h-6 w-6 text-red" />}
+              {isToday(task.dueDate) && <Clock className="h-6 w-6 text-emerald" />}
+              {!isOverdue(task.dueDate) && !isToday(task.dueDate) && <Calendar className="h-6 w-6 text-blue" />}
               <div>
                 <p className={`font-medium ${
-                  isOverdue(task.dueDate) ? 'text-red-800' :
-                  isToday(task.dueDate) ? 'text-emerald-800' : 'text-blue-800'
+                  isOverdue(task.dueDate) ? 'text-red' :
+                  isToday(task.dueDate) ? 'text-emerald' : 'text-blue'
                 }`}>
                   {isOverdue(task.dueDate) ? `Zaległe o ${Math.abs(daysUntilDue)} dni` :
                    isToday(task.dueDate) ? 'Do wykonania dzisiaj' :
                    `Do wykonania za ${daysUntilDue} dni`}
                 </p>
-                <p className={`text-sm ${
-                  isOverdue(task.dueDate) ? 'text-red-600' :
-                  isToday(task.dueDate) ? 'text-emerald-600' : 'text-blue-600'
-                }`}>
+                <p className="text-sm text-foreground-secondary">
                   {formatDate(task.dueDate)}
                 </p>
               </div>
             </div>
-<br></br>
+
             <Button
               onClick={handleCompleteTask}
               className="bg-emerald hover:bg-emerald-light emerald-glow"

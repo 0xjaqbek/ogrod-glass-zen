@@ -151,7 +151,7 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
               </div>
               <div>
                 <h3 className="text-sm sm:text-base font-semibold text-foreground">
-                  {totalTasks === 0 ? 'Brak zadań' : `${totalTasks} ${totalTasks === 1 ? 'zadanie' : totalTasks < 5 ? 'zadania' : 'zadań'} dzisiaj`}
+                  {totalTasks === 0 ? 'Brak zadań na dziś' : `${totalTasks} ${totalTasks === 1 ? 'zadanie' : totalTasks < 5 ? 'zadania' : 'zadań'} dzisiaj`}
                 </h3>
                 <p className="text-xs sm:text-sm text-foreground-secondary">
                   {totalTasks === 0 ? 'Świetna robota!' : 'Do wykonania'}
