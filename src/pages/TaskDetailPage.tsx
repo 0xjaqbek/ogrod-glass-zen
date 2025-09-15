@@ -183,18 +183,18 @@ const TaskDetailPage = () => {
         </Card>
       ) : (
         <Card className={`glass rounded-xl p-4 ${
-          isOverdue(task.dueDate) ? 'border-red-200 bg-red-50' : 
-          isToday(task.dueDate) ? 'border-emerald-200 bg-emerald-50' : 
+          isOverdue(task.dueDate) ? 'border-red-200 bg-red-50' :
+          isToday(task.dueDate) ? 'border-emerald-200 bg-emerald-50' :
           'border-blue-200 bg-blue-50'
         }`}>
-          <div className="flex items-center justify-between">
+          <div className="space-y-3">
             <div className="flex items-center space-x-3">
               {isOverdue(task.dueDate) && <AlertCircle className="h-6 w-6 text-red-600" />}
               {isToday(task.dueDate) && <Clock className="h-6 w-6 text-emerald-600" />}
               {!isOverdue(task.dueDate) && !isToday(task.dueDate) && <Calendar className="h-6 w-6 text-blue-600" />}
               <div>
                 <p className={`font-medium ${
-                  isOverdue(task.dueDate) ? 'text-red-800' : 
+                  isOverdue(task.dueDate) ? 'text-red-800' :
                   isToday(task.dueDate) ? 'text-emerald-800' : 'text-blue-800'
                 }`}>
                   {isOverdue(task.dueDate) ? `Zaległe o ${Math.abs(daysUntilDue)} dni` :
@@ -202,13 +202,14 @@ const TaskDetailPage = () => {
                    `Do wykonania za ${daysUntilDue} dni`}
                 </p>
                 <p className={`text-sm ${
-                  isOverdue(task.dueDate) ? 'text-red-600' : 
+                  isOverdue(task.dueDate) ? 'text-red-600' :
                   isToday(task.dueDate) ? 'text-emerald-600' : 'text-blue-600'
                 }`}>
                   {formatDate(task.dueDate)}
                 </p>
               </div>
             </div>
+<br></br>
             <Button
               onClick={handleCompleteTask}
               className="bg-emerald hover:bg-emerald-light emerald-glow"
