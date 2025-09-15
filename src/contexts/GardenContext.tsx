@@ -1,19 +1,6 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  saveGardensToFirebase,
-  loadGardensFromFirebase,
-  saveTasksToFirebase,
-  loadTasksFromFirebase,
-  saveNotificationsToFirebase,
-  loadNotificationsFromFirebase,
-  saveActivitiesToFirebase,
-  loadActivitiesFromFirebase,
-  initializeUserData,
-  subscribeToGardens,
-  subscribeToTasks,
-  subscribeToNotifications
-} from '@/lib/firebaseService';
+import syncService from '@/lib/syncService';
 
 // Types
 export interface Plant {
@@ -418,24 +405,31 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [state, dispatch] = useReducer(gardenReducer, initialState);
   const { currentUser } = useAuth();
 
-  // Initialize user data and load from Firebase when user changes
+  // Initialize user data and load from sync service when user changes
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      // Clear data when user logs out
+      syncService.clearUserData();
+      dispatch({ type: 'LOAD_DATA', payload: { gardens: [], tasks: [], notifications: [], activities: [] } });
+      return;
+    }
 
     const initializeAndLoadData = async () => {
       try {
-        await initializeUserData(currentUser.uid);
-        
-        // Load data from Firebase
-        const [gardens, tasks, notifications, activities] = await Promise.all([
-          loadGardensFromFirebase(currentUser.uid),
-          loadTasksFromFirebase(currentUser.uid),
-          loadNotificationsFromFirebase(currentUser.uid),
-          loadActivitiesFromFirebase(currentUser.uid)
-        ]);
+        console.log('Initializing user and loading data with sync service');
 
-        // Update state with loaded data
-        dispatch({ type: 'LOAD_DATA', payload: { gardens, tasks, notifications, activities } });
+        // Initialize user with sync service (handles offline-first loading)
+        const syncResult = await syncService.initializeUser(currentUser.uid);
+
+        if (syncResult.success && syncResult.syncedData) {
+          // Update state with loaded data (from local storage or Firebase)
+          dispatch({
+            type: 'LOAD_DATA',
+            payload: syncResult.syncedData
+          });
+        } else {
+          console.error('Failed to initialize user data:', syncResult.error);
+        }
       } catch (error) {
         console.error('Error loading user data:', error);
       }
@@ -444,11 +438,11 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     initializeAndLoadData();
   }, [currentUser]);
 
-  // Auto-save to Firebase when data changes
+  // Auto-save to sync service when data changes (offline-first)
   useEffect(() => {
     if (!currentUser) return;
 
-    const saveDataToFirebase = async () => {
+    const saveDataToSync = async () => {
       try {
         // Don't save if we haven't loaded data yet (prevents clearing database on app start)
         const hasLoadedData = state.gardens.length > 0 || state.tasks.length > 0 ||
@@ -459,7 +453,7 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return;
         }
 
-        console.log('Saving data to Firebase:', {
+        console.log('Saving data with sync service:', {
           gardens: state.gardens.length,
           tasks: state.tasks.length,
           notifications: state.notifications.length,
@@ -467,32 +461,22 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           userId: currentUser.uid
         });
 
-        await Promise.all([
-          saveGardensToFirebase(currentUser.uid, state.gardens),
-          saveTasksToFirebase(currentUser.uid, state.tasks),
-          saveNotificationsToFirebase(currentUser.uid, state.notifications),
-          saveActivitiesToFirebase(currentUser.uid, state.activities)
-        ]);
-
-        console.log('Successfully saved all data to Firebase');
-      } catch (error) {
-        console.error('Error saving data to Firebase:', error);
-        console.error('Error details:', {
-          message: error.message,
-          code: error.code,
-          userId: currentUser.uid,
-          dataCount: {
-            gardens: state.gardens.length,
-            tasks: state.tasks.length,
-            notifications: state.notifications.length,
-            activities: state.activities.length
-          }
+        // Save to sync service (handles offline/online automatically)
+        await syncService.saveData(currentUser.uid, {
+          gardens: state.gardens,
+          tasks: state.tasks,
+          notifications: state.notifications,
+          activities: state.activities
         });
+
+        console.log('Successfully saved all data via sync service');
+      } catch (error) {
+        console.error('Error saving data via sync service:', error);
       }
     };
 
     // Debounce saves to avoid too many writes
-    const timeoutId = setTimeout(saveDataToFirebase, 1000);
+    const timeoutId = setTimeout(saveDataToSync, 1000);
     return () => clearTimeout(timeoutId);
   }, [currentUser, state.gardens, state.tasks, state.notifications, state.activities]);
 

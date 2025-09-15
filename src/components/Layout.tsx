@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useGarden } from "@/contexts/GardenContext";
 import NavigationBar from "@/components/NavigationBar";
+import SyncStatus from "@/components/SyncStatus";
 
 const Layout = () => {
   const { state, dispatch } = useGarden();
@@ -180,8 +181,15 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Sync Status Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-2">
+          <SyncStatus />
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="pb-20">
+      <main className="pt-16 pb-20">
         <Outlet />
       </main>
 
