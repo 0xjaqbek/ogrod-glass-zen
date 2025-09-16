@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(firebase --version)"
+      "Bash(firebase --version)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
