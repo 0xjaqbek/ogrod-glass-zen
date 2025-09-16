@@ -14,15 +14,22 @@ export const PWAInstallPrompt: React.FC = () => {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Debug PWA status
+    console.log('PWA Install Prompt: Initializing...');
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Display mode:', window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser');
+
     // Check if app is already installed
     const checkIfInstalled = () => {
       if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('PWA Install Prompt: App already installed (standalone mode)');
         setIsInstalled(true);
         return;
       }
 
       // Check for iOS Safari standalone mode
       if ((window.navigator as any).standalone === true) {
+        console.log('PWA Install Prompt: App already installed (iOS standalone)');
         setIsInstalled(true);
         return;
       }
@@ -30,15 +37,17 @@ export const PWAInstallPrompt: React.FC = () => {
 
     // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('PWA Install Prompt: beforeinstallprompt event fired!', e);
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
 
-      // Don't show prompt immediately, wait a bit for user to explore
+      // Show prompt after 5 seconds for testing (was 30 seconds)
       setTimeout(() => {
+        console.log('PWA Install Prompt: Showing install prompt');
         if (!isInstalled) {
           setShowInstallPrompt(true);
         }
-      }, 30000); // Show after 30 seconds
+      }, 5000);
     };
 
     // Listen for app installed event
@@ -55,8 +64,30 @@ export const PWAInstallPrompt: React.FC = () => {
 
     checkIfInstalled();
 
+    // Debug service worker status
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        console.log('PWA Install Prompt: Service Worker registrations:', registrations.length);
+        registrations.forEach((registration, index) => {
+          console.log(`PWA Install Prompt: SW ${index}:`, registration.scope, registration.active?.state);
+        });
+      });
+    }
+
+    // Check manifest
+    const manifestLinks = document.querySelectorAll('link[rel="manifest"]');
+    console.log('PWA Install Prompt: Manifest links found:', manifestLinks.length);
+    manifestLinks.forEach((link, index) => {
+      console.log(`PWA Install Prompt: Manifest ${index}:`, (link as HTMLLinkElement).href);
+    });
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Also listen for any errors
+    window.addEventListener('error', (e) => {
+      console.error('PWA Install Prompt: Window error:', e);
+    });
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
