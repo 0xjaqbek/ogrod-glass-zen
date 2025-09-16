@@ -12,12 +12,22 @@ export const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
   useEffect(() => {
     // Debug PWA status
     console.log('PWA Install Prompt: Initializing...');
     console.log('User Agent:', navigator.userAgent);
     console.log('Display mode:', window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser');
+
+    // Detect iOS/Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isIOSSafari = isIOS && isSafari;
+
+    console.log('PWA Install Prompt: iOS detected:', isIOS);
+    console.log('PWA Install Prompt: Safari detected:', isSafari);
+    console.log('PWA Install Prompt: iOS Safari detected:', isIOSSafari);
 
     // Check if app is already installed
     const checkIfInstalled = () => {
@@ -84,6 +94,14 @@ export const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // For iOS Safari, show manual instructions since no beforeinstallprompt event
+    if (isIOSSafari && !isInstalled) {
+      setTimeout(() => {
+        console.log('PWA Install Prompt: Showing iOS instructions');
+        setShowIOSInstructions(true);
+      }, 5000);
+    }
+
     // Also listen for any errors
     window.addEventListener('error', (e) => {
       console.error('PWA Install Prompt: Window error:', e);
@@ -123,6 +141,7 @@ export const PWAInstallPrompt: React.FC = () => {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
+    setShowIOSInstructions(false);
     // Don't show again for this session
     sessionStorage.setItem('pwa-install-dismissed', 'true');
   };
@@ -132,6 +151,53 @@ export const PWAInstallPrompt: React.FC = () => {
     return null;
   }
 
+  // Show iOS instructions
+  if (showIOSInstructions) {
+    return (
+      <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">🌱</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">Dodaj do Ekranu Głównego</h3>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDismiss}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="text-xs text-gray-600 dark:text-gray-400 mb-3 space-y-1">
+            <p>Aby zainstalować aplikację:</p>
+            <p>1. Naciśnij przycisk "Udostępnij" ↗️ w Safari</p>
+            <p>2. Wybierz "Dodaj do ekranu głównego"</p>
+            <p>3. Naciśnij "Dodaj"</p>
+          </div>
+
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={handleDismiss}
+              size="sm"
+              className="flex-1 text-xs"
+            >
+              Rozumiem
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show Android/Windows install prompt
   if (!showInstallPrompt || !deferredPrompt) {
     return null;
   }
