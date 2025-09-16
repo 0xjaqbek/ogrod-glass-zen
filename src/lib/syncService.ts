@@ -27,6 +27,7 @@ import {
   LocalData,
   PendingChange
 } from './localStorageService';
+import { toast } from '@/hooks/use-toast';
 
 export interface SyncOptions {
   forceRefresh?: boolean;
@@ -57,6 +58,13 @@ class SyncService {
     // Automatically sync when coming online
     const userId = getUserIdFromLocal();
     if (userId) {
+      const pendingChanges = loadPendingChanges().length;
+      if (pendingChanges > 0) {
+        toast({
+          title: "Połączenie przywrócone",
+          description: `Synchronizowanie ${pendingChanges} oczekujących zmian...`,
+        });
+      }
       this.syncData(userId);
     }
   }
@@ -145,10 +153,29 @@ class SyncService {
     }
 
     this.isSyncing = true;
+    let toastId: string | null = null;
 
     try {
       const { direction = 'both', forceRefresh = false } = options;
       let result: SyncResult;
+
+      // Show sync start toast
+      if (direction === 'both') {
+        toastId = toast({
+          title: "Synchronizacja",
+          description: "Synchronizowanie danych...",
+        }).id;
+      } else if (direction === 'up') {
+        toastId = toast({
+          title: "Wysyłanie",
+          description: "Wysyłanie zmian do chmury...",
+        }).id;
+      } else if (direction === 'down') {
+        toastId = toast({
+          title: "Pobieranie",
+          description: "Pobieranie najnowszych danych...",
+        }).id;
+      }
 
       if (direction === 'up' || direction === 'both') {
         // Upload local changes to Firebase
@@ -169,11 +196,29 @@ class SyncService {
       // Update sync timestamp
       saveSyncTimestamp(Date.now());
 
+      // Show success toast
+      if (toastId) {
+        toast({
+          title: "Synchronizacja zakończona",
+          description: "Dane zostały pomyślnie zsynchronizowane",
+        });
+      }
+
       this.notifyListeners(result);
       return result;
 
     } catch (error) {
       console.error('Sync error:', error);
+
+      // Show error toast
+      if (toastId) {
+        toast({
+          title: "Błąd synchronizacji",
+          description: "Nie udało się zsynchronizować danych",
+          variant: "destructive",
+        });
+      }
+
       const result: SyncResult = {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown sync error'
@@ -311,7 +356,7 @@ class SyncService {
     const updatedData = { ...currentData, ...data };
     saveAllDataToLocal(updatedData);
 
-    // If offline, add to pending changes
+    // If offline, add to pending changes and show notification
     if (!this.isOnline) {
       Object.entries(data).forEach(([collection, items]) => {
         if (items && items.length > 0) {
@@ -321,6 +366,11 @@ class SyncService {
             data: items
           });
         }
+      });
+
+      toast({
+        title: "Offline",
+        description: "Zmiany zapisane lokalnie, zostaną zsynchronizowane gdy będzie połączenie",
       });
       return;
     }
@@ -339,6 +389,11 @@ class SyncService {
             data: items
           });
         }
+      });
+
+      toast({
+        title: "Połączenie przerwane",
+        description: "Zmiany zapisane lokalnie, zostaną zsynchronizowane później",
       });
     }
   }
