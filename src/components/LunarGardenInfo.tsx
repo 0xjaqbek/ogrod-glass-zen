@@ -51,10 +51,20 @@ const LunarGardenInfo = () => {
       {isExpanded && (
         <div className="px-4 pb-4 space-y-4 border-t border-emerald/10">
           {/* General Info */}
-          <div className="pt-4">
+          <div className="pt-4 space-y-3">
             <p className="text-sm text-foreground-secondary leading-relaxed">
               {recommendation.detailed.general}
             </p>
+            {recommendation.detailed.seasonalNote && (
+              <div className="bg-emerald/5 border border-emerald/10 rounded-lg p-3">
+                <p className="text-sm text-foreground font-medium">
+                  📅 {recommendation.seasonal.season === 'spring' ? 'Wiosna' :
+                       recommendation.seasonal.season === 'summer' ? 'Lato' :
+                       recommendation.seasonal.season === 'autumn' ? 'Jesień' : 'Zima'} -
+                  {' '}{recommendation.detailed.seasonalNote}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Favorable Activities */}
