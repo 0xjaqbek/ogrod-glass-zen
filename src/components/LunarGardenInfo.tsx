@@ -12,7 +12,7 @@ const LunarGardenInfo = () => {
     <Card className="glass rounded-xl border border-emerald/20">
       {/* Main Card - Clickable */}
       <div
-        className="p-4 cursor-pointer glass-hover"
+        className="p-4 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center space-x-4">
