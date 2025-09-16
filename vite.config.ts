@@ -4,28 +4,25 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const base = mode === "production" ? "/ogrod-glass-zen/" : "/";
-
-  return {
-    base,
-    server: {
-      host: "::",
-      port: 8080,
-    },
-    plugins: [
-      react(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-        manifest: {
-          name: 'Ogród App',
-          short_name: 'Ogród',
-          description: 'Polska aplikacja do zarządzania ogrodem z minimalistycznym designem',
-          theme_color: '#000000',
-          background_color: '#ffffff',
-          display: 'standalone',
-          start_url: base,
+export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/ogrod-glass-zen/" : "/",
+  server: {
+    host: "::",
+    port: 8080,
+  },
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      manifest: {
+        name: 'Ogród App',
+        short_name: 'Ogród',
+        description: 'Polska aplikacja do zarządzania ogrodem z minimalistycznym designem',
+        theme_color: '#000000',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'android/android-launchericon-48-48.png',
@@ -67,8 +64,6 @@ export default defineConfig(({ mode }) => {
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./i,
@@ -93,5 +88,4 @@ export default defineConfig(({ mode }) => {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-};
-});
+}));
