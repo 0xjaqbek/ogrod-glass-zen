@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Droplets, Sprout, Clock, History } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -19,8 +19,9 @@ interface BedDetailProps {
 }
 
 const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
-  const { state, addPlant } = useGarden();
+  const { state, addPlant, addActivity } = useGarden();
   const [isAddPlantOpen, setIsAddPlantOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [newPlantData, setNewPlantData] = useState({
     name: '',
     emoji: '🌱',
@@ -135,6 +136,55 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
       'mature': 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30',
     };
     return phaseColors[phase as keyof typeof phaseColors] || 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30';
+  };
+
+  const handleWaterBed = () => {
+    if (selectedGarden && bed) {
+      addActivity({
+        action: `Podlano całą grządkę "${bed.name}"`,
+        date: new Date(),
+        gardenId: selectedGarden.id,
+        bedId: bed.id,
+      });
+
+      toast({
+        title: "Grządka podlana! 💧",
+        description: `Podlano całą grządkę "${bed.name}"`,
+      });
+    }
+  };
+
+  const handleFertilizeBed = () => {
+    if (selectedGarden && bed) {
+      addActivity({
+        action: `Nawożono całą grządkę "${bed.name}"`,
+        date: new Date(),
+        gardenId: selectedGarden.id,
+        bedId: bed.id,
+      });
+
+      toast({
+        title: "Grządka nawożona! 🌱",
+        description: `Nawożono całą grządkę "${bed.name}"`,
+      });
+    }
+  };
+
+  // Get bed-specific activities
+  const getBedActivities = () => {
+    return state.activities
+      .filter(activity => activity.bedId === bedId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  const formatActivityDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('pl-PL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -281,6 +331,42 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
         </Dialog>
       </div>
 
+      {/* Bed Actions */}
+      {bed.plants.length > 0 && (
+        <Card className="glass rounded-xl p-3 sm:p-6">
+          <h3 className="text-sm sm:text-base font-semibold text-foreground mb-3">
+            Akcje dla całej grządki
+          </h3>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <Button
+              onClick={handleWaterBed}
+              className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center gap-2 text-xs sm:text-sm py-2 sm:py-3"
+            >
+              <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Podlej całą grządkę</span>
+              <span className="sm:hidden">Podlej</span>
+            </Button>
+            <Button
+              onClick={handleFertilizeBed}
+              className="bg-green-500 hover:bg-green-600 text-white flex items-center justify-center gap-2 text-xs sm:text-sm py-2 sm:py-3"
+            >
+              <Sprout className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Nawieź całą grządkę</span>
+              <span className="sm:hidden">Nawieź</span>
+            </Button>
+            <Button
+              onClick={() => setIsHistoryOpen(true)}
+              variant="outline"
+              className="glass-button flex items-center justify-center gap-2 text-xs sm:text-sm py-2 sm:py-3"
+            >
+              <History className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Historia</span>
+              <span className="sm:hidden">Historia</span>
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Plants List */}
       {bed.plants.length > 0 ? (
         <div className="space-y-3 sm:space-y-4">
@@ -375,6 +461,59 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
           )}
         </div>
       </Card>
+
+      {/* History Dialog */}
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="glass max-h-[80vh] overflow-y-auto bg-background/95 dark:bg-background/90 backdrop-blur-sm">
+          <DialogHeader>
+            <DialogTitle>Historia grządki "{bed.name}"</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {getBedActivities().length > 0 ? (
+              <div className="space-y-3">
+                {getBedActivities().map((activity) => (
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 bg-emerald/[0.02] dark:bg-emerald/[0.01] rounded-lg">
+                    <div className="flex-shrink-0 p-2 rounded-lg bg-emerald/20">
+                      {activity.action.includes('Podlano') ? (
+                        <Droplets className="h-4 w-4 text-blue-500" />
+                      ) : activity.action.includes('Nawożono') ? (
+                        <Sprout className="h-4 w-4 text-green-500" />
+                      ) : activity.action.includes('Posadzono') ? (
+                        <Plus className="h-4 w-4 text-emerald" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-foreground-secondary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {activity.action}
+                      </p>
+                      <p className="text-xs text-foreground-secondary">
+                        {formatActivityDate(activity.date)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Clock className="h-8 w-8 text-foreground-secondary mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Brak historii
+                </h3>
+                <p className="text-foreground-secondary">
+                  Historia akcji dla tej grządki będzie wyświetlana tutaj.
+                </p>
+              </div>
+            )}
+            <div className="flex justify-end">
+              <Button variant="ghost" onClick={() => setIsHistoryOpen(false)}>
+                Zamknij
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
