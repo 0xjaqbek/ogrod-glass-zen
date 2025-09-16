@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useTheme } from '@/hooks/useTheme';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -13,6 +14,7 @@ export const PWAInstallPrompt: React.FC = () => {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const { colorScheme } = useTheme();
 
   useEffect(() => {
     // Debug PWA status
@@ -155,7 +157,7 @@ export const PWAInstallPrompt: React.FC = () => {
   if (showIOSInstructions) {
     return (
       <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4">
+        <div className={`rounded-lg shadow-lg p-4 ${colorScheme === 'reversed' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
@@ -175,7 +177,7 @@ export const PWAInstallPrompt: React.FC = () => {
             </Button>
           </div>
 
-          <div className="text-xs text-gray-600 dark:text-gray-400 mb-3 space-y-1">
+          <div className={`text-xs mb-3 space-y-1 ${colorScheme === 'reversed' ? 'text-gray-400' : 'text-gray-600'}`}>
             <p>Aby zainstalować aplikację:</p>
             <p>1. Naciśnij przycisk "Udostępnij" ↗️ w Safari</p>
             <p>2. Wybierz "Dodaj do ekranu głównego"</p>
@@ -224,7 +226,7 @@ export const PWAInstallPrompt: React.FC = () => {
           </Button>
         </div>
 
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+        <p className={`text-xs mb-3 ${colorScheme === 'reversed' ? 'text-gray-400' : 'text-gray-600'}`}>
           Dodaj do ekranu głównego dla szybszego dostępu
         </p>
 
