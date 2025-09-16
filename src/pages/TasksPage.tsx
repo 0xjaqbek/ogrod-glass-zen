@@ -192,26 +192,44 @@ const TasksPage = () => {
         </Card>
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { key: 'all', label: 'Wszystkie', count: filter === 'all' ? filteredTasks.length : todayTasks.length + upcomingTasks.length + overdueTasks.length },
-          { key: 'today', label: 'Dzisiaj', count: todayTasks.length },
-          { key: 'overdue', label: 'Zaległe', count: overdueTasks.length },
-          { key: 'upcoming', label: 'Nadchodzące', count: upcomingTasks.length },
-          { key: 'completed', label: 'Ukończone', count: completedTasks.length }
-        ].map(({ key, label, count }) => (
-          <Button
-            key={key}
-            variant={filter === key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter(key as any)}
-            className={`glass-button text-xs sm:text-sm ${filter === key ? 'emerald-glow' : ''}`}
-          >
-            {label} ({count})
-          </Button>
-        ))}
-      </div>
+      {/* Filter Tabs */}
+      <Card className="glass rounded-xl p-2">
+        <div className="flex space-x-1 overflow-x-auto">
+          {[
+            { key: 'all', label: 'Wszystkie', count: filter === 'all' ? filteredTasks.length : todayTasks.length + upcomingTasks.length + overdueTasks.length },
+            { key: 'today', label: 'Dzisiaj', count: todayTasks.length },
+            { key: 'overdue', label: 'Zaległe', count: overdueTasks.length },
+            { key: 'upcoming', label: 'Nadchodzące', count: upcomingTasks.length },
+            { key: 'completed', label: 'Ukończone', count: completedTasks.length }
+          ].map(({ key, label, count }) => (
+            <Button
+              key={key}
+              variant={filter === key ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilter(key as any)}
+              className={`text-xs whitespace-nowrap ${
+                filter === key
+                  ? 'bg-emerald text-white'
+                  : 'glass-button'
+              }`}
+            >
+              {label}
+              {count > 0 && (
+                <Badge
+                  variant="secondary"
+                  className={`ml-1 text-xs ${
+                    filter === key
+                      ? 'bg-white/20 text-white border-white/30'
+                      : 'bg-emerald/20 text-emerald border-emerald/30'
+                  }`}
+                >
+                  {count}
+                </Badge>
+              )}
+            </Button>
+          ))}
+        </div>
+      </Card>
 
       {/* Tasks List */}
       {filteredTasks.length > 0 ? (
