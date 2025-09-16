@@ -12,17 +12,17 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-      manifest: {
-        name: 'Ogród App',
-        short_name: 'Ogród',
-        description: 'Polska aplikacja do zarządzania ogrodem z minimalistycznym designem',
-        theme_color: '#000000',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        manifest: {
+          name: 'Ogród App',
+          short_name: 'Ogród',
+          description: 'Polska aplikacja do zarządzania ogrodem z minimalistycznym designem',
+          theme_color: '#000000',
+          background_color: '#ffffff',
+          display: 'standalone',
+          start_url: 'base',
         icons: [
           {
             src: 'android/android-launchericon-48-48.png',
