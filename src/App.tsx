@@ -37,6 +37,7 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import { UpdateModal } from "@/components/UpdateModal";
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,7 @@ const App = () => {
             <Sonner />
             <AppRoutes />
             <PWAInstallPrompt />
+            <UpdateModal />
           </TooltipProvider>
         </GardenProvider>
       </AuthProvider>
