@@ -403,6 +403,7 @@ const GardenContext = createContext<GardenContextType | undefined>(undefined);
 // Provider Component
 export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(gardenReducer, initialState);
+  const [isInitialized, setIsInitialized] = React.useState(false);
   const { currentUser } = useAuth();
 
   // Initialize user data and load from sync service when user changes
@@ -411,12 +412,20 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Clear data when user logs out
       syncService.clearUserData();
       dispatch({ type: 'LOAD_DATA', payload: { gardens: [], tasks: [], notifications: [], activities: [] } });
+      setIsInitialized(false);
+      return;
+    }
+
+    // Prevent re-initialization for the same user
+    if (isInitialized) {
+      console.log('User already initialized, skipping...');
       return;
     }
 
     const initializeAndLoadData = async () => {
       try {
         console.log('Initializing user and loading data with sync service');
+        setIsInitialized(true);
 
         // Initialize user with sync service (handles offline-first loading)
         const syncResult = await syncService.initializeUser(currentUser.uid);
@@ -429,18 +438,20 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           });
         } else {
           console.error('Failed to initialize user data:', syncResult.error);
+          setIsInitialized(false); // Reset on failure
         }
       } catch (error) {
         console.error('Error loading user data:', error);
+        setIsInitialized(false); // Reset on error
       }
     };
 
     initializeAndLoadData();
-  }, [currentUser]);
+  }, [currentUser, isInitialized]);
 
   // Auto-save to sync service when data changes (offline-first)
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !isInitialized) return;
 
     const saveDataToSync = async () => {
       try {
@@ -450,6 +461,12 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         if (!hasLoadedData) {
           console.log('Skipping save - no data loaded yet');
+          return;
+        }
+
+        // Skip saving if sync is in progress to prevent loops
+        if (syncService.isSyncInProgress()) {
+          console.log('Skipping save - sync in progress');
           return;
         }
 
@@ -475,10 +492,11 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     };
 
-    // Debounce saves to avoid too many writes
-    const timeoutId = setTimeout(saveDataToSync, 1000);
+    // Debounce saves to avoid too many writes, longer debounce in development
+    const debounceTime = process.env.NODE_ENV === 'development' ? 3000 : 1000;
+    const timeoutId = setTimeout(saveDataToSync, debounceTime);
     return () => clearTimeout(timeoutId);
-  }, [currentUser, state.gardens, state.tasks, state.notifications, state.activities]);
+  }, [currentUser, isInitialized, state.gardens, state.tasks, state.notifications, state.activities]);
 
   // Garden actions
   const addGarden = useCallback((garden: Omit<Garden, 'id'>) => {

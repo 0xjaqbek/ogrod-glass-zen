@@ -288,16 +288,61 @@ const SettingsScreen = () => {
   };
 
   const getAppInfo = () => {
+    // Find the most recent modification date from all data
+    const getLastModificationDate = () => {
+      const dates: Date[] = [];
+
+      // Get dates from activities (most recent changes)
+      state.activities.forEach(activity => {
+        if (activity.date) {
+          dates.push(new Date(activity.date));
+        }
+      });
+
+      // Get dates from tasks
+      state.tasks.forEach(task => {
+        if (task.dueDate) {
+          dates.push(new Date(task.dueDate));
+        }
+      });
+
+      // Get dates from plant modifications (last watered, planted date)
+      state.gardens.forEach(garden => {
+        garden.beds.forEach(bed => {
+          bed.plants.forEach(plant => {
+            if (plant.plantedDate) {
+              dates.push(new Date(plant.plantedDate));
+            }
+            if (plant.lastWatered) {
+              dates.push(new Date(plant.lastWatered));
+            }
+          });
+        });
+      });
+
+      // Get dates from notifications
+      state.notifications.forEach(notification => {
+        if (notification.createdDate) {
+          dates.push(new Date(notification.createdDate));
+        }
+      });
+
+      // Return the most recent date, or null if no dates found
+      if (dates.length === 0) return null;
+      return new Date(Math.max(...dates.map(date => date.getTime())));
+    };
+
     return {
       gardens: state.gardens.length,
       beds: state.gardens.reduce((sum, garden) => sum + garden.beds.length, 0),
-      plants: state.gardens.reduce((sum, garden) => 
+      plants: state.gardens.reduce((sum, garden) =>
         sum + garden.beds.reduce((bedSum, bed) => bedSum + bed.plants.length, 0), 0
       ),
       tasks: state.tasks.length,
       activeTasks: state.tasks.filter(t => !t.completed).length,
       activities: state.activities.length,
       notifications: state.notifications.length,
+      lastModification: getLastModificationDate(),
     };
   };
 
@@ -623,8 +668,19 @@ const SettingsScreen = () => {
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-foreground-secondary">Ostatnia kopia:</span>
-            <span className="text-foreground">Nigdy</span>
+            <span className="text-foreground-secondary">Ostatnia zmiana:</span>
+            <span className="text-foreground">
+              {appInfo.lastModification
+                ? new Date(appInfo.lastModification).toLocaleDateString('pl-PL', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : 'Brak danych'
+              }
+            </span>
           </div>
         </div>
       </Card>
