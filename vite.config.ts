@@ -19,8 +19,10 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         devOptions: {
-          enabled: false
+          enabled: true,
+          type: 'module'
         },
+        useCredentials: true,
         manifest: {
           name: 'Ogród App',
           short_name: 'Ogród',
@@ -28,7 +30,11 @@ export default defineConfig(({ mode }) => {
           theme_color: '#000000',
           background_color: '#ffffff',
           display: 'standalone',
+          orientation: 'portrait',
+          scope: base,
           start_url: base,
+          id: 'ogrod-app',
+          categories: ['productivity', 'lifestyle'],
         icons: [
           {
             src: 'android/android-launchericon-48-48.png',
