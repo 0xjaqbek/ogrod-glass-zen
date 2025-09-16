@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import LunarGardenInfo from "@/components/LunarGardenInfo";
 
 interface GardenDashboardProps {
   onGardenSelect?: () => void;
@@ -137,6 +138,9 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Lunar Garden Info */}
+      <LunarGardenInfo />
 
       {/* Today's Stats */}
       {state.gardens.length > 0 && (
