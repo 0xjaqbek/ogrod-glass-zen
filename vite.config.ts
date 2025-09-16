@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        devOptions: {
+          enabled: false
+        },
         manifest: {
           name: 'Ogród App',
           short_name: 'Ogród',
@@ -67,8 +70,9 @@ export default defineConfig(({ mode }) => {
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+        navigateFallback: '/ogrod-glass-zen/index.html',
+        navigateFallbackAllowlist: [/^\/ogrod-glass-zen\/(?!.*\.).*$/],
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/api/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./i,
