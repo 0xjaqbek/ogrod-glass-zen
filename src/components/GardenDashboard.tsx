@@ -126,10 +126,10 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
         </div>
         <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="text-right">
-            <div className="text-sm sm:text-base font-medium text-foreground">
+            <div className="text-xs sm:text-sm font-medium text-foreground">
               {formatCurrentDate()}
             </div>
-            <div className="text-xs sm:text-sm text-foreground-secondary">
+            <div className="text-[10px] sm:text-xs text-foreground-secondary">
               {formatCurrentTime()}
             </div>
           </div>
