@@ -450,22 +450,22 @@
   }
   
   .glass-hover:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-1px) scale(1.01);
     box-shadow:
       var(--shadow-xl),
-      0 0 0 1px rgba(255, 255, 255, 0.05);
+      0 0 0 1px rgba(255, 255, 255, 0.03);
   }
 
   html.theme-reversed .glass-hover:hover,
   body.theme-reversed .glass-hover:hover,
   .theme-reversed .glass-hover:hover {
-    background: rgba(0, 0, 0, 0.15) !important;
-    border-color: rgba(0, 0, 0, 0.25) !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
     box-shadow:
       var(--shadow-xl),
-      0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+      0 0 0 1px rgba(0, 0, 0, 0.03) !important;
   }
   
   .glass-hover:hover::before {

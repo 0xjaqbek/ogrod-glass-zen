@@ -175,7 +175,11 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
           <h2 className="text-base sm:text-lg font-semibold text-foreground">Dzisiaj</h2>
           <div className="space-y-3">
             {todaysTasks.slice(0, 3).map((task) => (
-              <Card key={task.id} className="glass rounded-xl p-3 sm:p-6 glass-hover">
+              <Card
+                key={task.id}
+                className="glass rounded-xl p-3 sm:p-6 glass-hover cursor-pointer"
+                onClick={() => navigate(`/tasks/${task.id}`)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 sm:space-x-4">
                     <div className="p-2 sm:p-3 rounded-lg bg-emerald/20">
@@ -196,7 +200,10 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => handleCompleteTask(task.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCompleteTask(task.id);
+                    }}
                     className="bg-emerald hover:bg-emerald-light emerald-glow flex-shrink-0"
                   >
                     <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />

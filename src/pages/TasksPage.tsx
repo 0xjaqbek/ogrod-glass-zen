@@ -257,7 +257,11 @@ const TasksPage = () => {
             const plant = bed?.plants.find(p => p.id === task.plantId);
 
             return (
-              <Card key={task.id} className="glass rounded-xl p-3 sm:p-6 glass-hover">
+              <Card
+                key={task.id}
+                className="glass rounded-xl p-3 sm:p-6 glass-hover cursor-pointer"
+                onClick={() => navigate(`/tasks/${task.id}`)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3 sm:space-x-4 flex-1">
                     <div className={`p-2 sm:p-3 rounded-lg ${
@@ -267,11 +271,9 @@ const TasksPage = () => {
                       {getTaskIcon(task.type)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <Link to={`/tasks/${task.id}`}>
-                        <h3 className="text-sm sm:text-base font-medium text-foreground hover:text-emerald">
-                          {task.title}
-                        </h3>
-                      </Link>
+                      <h3 className="text-sm sm:text-base font-medium text-foreground">
+                        {task.title}
+                      </h3>
                       <p className="text-xs sm:text-sm text-foreground-secondary mb-2">
                         {task.description}
                       </p>
@@ -312,7 +314,10 @@ const TasksPage = () => {
                         {!task.completed && (
                           <Button
                             size="sm"
-                            onClick={() => handleCompleteTask(task.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCompleteTask(task.id);
+                            }}
                             className="bg-emerald hover:bg-emerald-light emerald-glow text-xs h-7"
                           >
                             <CheckCircle className="h-3 w-3 mr-1" />
