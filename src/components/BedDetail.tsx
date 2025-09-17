@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Plus, Droplets, Sprout, Clock, History } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Droplets, Sprout, Clock, History, Calendar, CheckCircle } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -140,40 +140,96 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
 
   const handleWaterBed = () => {
     if (selectedGarden && bed) {
+      const now = new Date();
+
+      // Add bed-level activity
       addActivity({
         action: `Podlano całą grządkę "${bed.name}"`,
-        date: new Date(),
+        date: now,
         gardenId: selectedGarden.id,
         bedId: bed.id,
       });
 
+      // Update lastWatered for all plants in the bed
+      bed.plants.forEach(plant => {
+        const updatedPlant = {
+          ...plant,
+          lastWatered: now
+        };
+
+        dispatch({
+          type: 'UPDATE_PLANT',
+          payload: {
+            gardenId: selectedGarden.id,
+            bedId: bed.id,
+            plant: updatedPlant
+          }
+        });
+      });
+
       toast({
         title: "Grządka podlana! 💧",
-        description: `Podlano całą grządkę "${bed.name}"`,
+        description: `Podlano całą grządkę "${bed.name}" i wszystkie rośliny`,
       });
     }
   };
 
   const handleFertilizeBed = () => {
     if (selectedGarden && bed) {
+      const now = new Date();
+
+      // Add bed-level activity
       addActivity({
         action: `Nawożono całą grządkę "${bed.name}"`,
-        date: new Date(),
+        date: now,
         gardenId: selectedGarden.id,
         bedId: bed.id,
       });
 
+      // Add individual plant activities for fertilizing
+      bed.plants.forEach(plant => {
+        addActivity({
+          action: `Nawożono roślinę ${plant.emoji} ${plant.name}`,
+          date: now,
+          gardenId: selectedGarden.id,
+          bedId: bed.id,
+          plantId: plant.id,
+        });
+      });
+
       toast({
         title: "Grządka nawożona! 🌱",
-        description: `Nawożono całą grządkę "${bed.name}"`,
+        description: `Nawożono całą grządkę "${bed.name}" i wszystkie rośliny`,
       });
     }
   };
 
-  // Get bed-specific activities
+  // Get bed-specific activities and tasks
   const getBedActivities = () => {
-    return state.activities
+    const activities = state.activities
       .filter(activity => activity.bedId === bedId)
+      .map(activity => ({
+        ...activity,
+        type: 'activity' as const
+      }));
+
+    const tasks = state.tasks
+      .filter(task => task.bedId === bedId)
+      .map(task => ({
+        id: task.id,
+        action: task.completed
+          ? `Ukończono zadanie: ${task.title}`
+          : `Zadanie: ${task.title}`,
+        date: task.dueDate,
+        gardenId: task.gardenId,
+        bedId: task.bedId,
+        plantId: task.plantId,
+        type: 'task' as const,
+        completed: task.completed,
+        taskType: task.type
+      }));
+
+    return [...activities, ...tasks]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
@@ -471,26 +527,51 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
           <div className="space-y-4">
             {getBedActivities().length > 0 ? (
               <div className="space-y-3">
-                {getBedActivities().map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3 p-3 bg-emerald/[0.02] dark:bg-emerald/[0.01] rounded-lg">
+                {getBedActivities().map((item) => (
+                  <div key={item.id} className="flex items-start space-x-3 p-3 bg-emerald/[0.02] dark:bg-emerald/[0.01] rounded-lg">
                     <div className="flex-shrink-0 p-2 rounded-lg bg-emerald/20">
-                      {activity.action.includes('Podlano') ? (
+                      {item.type === 'task' ? (
+                        item.taskType === 'watering' ? (
+                          <Droplets className={`h-4 w-4 ${item.completed ? 'text-blue-500' : 'text-blue-300'}`} />
+                        ) : item.taskType === 'fertilizing' ? (
+                          <Sprout className={`h-4 w-4 ${item.completed ? 'text-green-500' : 'text-green-300'}`} />
+                        ) : item.taskType === 'harvesting' ? (
+                          <CheckCircle className={`h-4 w-4 ${item.completed ? 'text-orange-500' : 'text-orange-300'}`} />
+                        ) : (
+                          <Calendar className={`h-4 w-4 ${item.completed ? 'text-emerald' : 'text-foreground-secondary'}`} />
+                        )
+                      ) : item.action.includes('Podlano') ? (
                         <Droplets className="h-4 w-4 text-blue-500" />
-                      ) : activity.action.includes('Nawożono') ? (
+                      ) : item.action.includes('Nawożono') ? (
                         <Sprout className="h-4 w-4 text-green-500" />
-                      ) : activity.action.includes('Posadzono') ? (
+                      ) : item.action.includes('Posadzono') ? (
                         <Plus className="h-4 w-4 text-emerald" />
                       ) : (
                         <Clock className="h-4 w-4 text-foreground-secondary" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {activity.action}
+                      <p className={`text-sm font-medium ${
+                        item.type === 'task' && !item.completed
+                          ? 'text-foreground-secondary'
+                          : 'text-foreground'
+                      }`}>
+                        {item.action}
                       </p>
                       <p className="text-xs text-foreground-secondary">
-                        {formatActivityDate(activity.date)}
+                        {formatActivityDate(item.date)}
                       </p>
+                      {item.type === 'task' && (
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                            item.completed
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                          }`}>
+                            {item.completed ? 'Ukończone' : 'Oczekuje'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
