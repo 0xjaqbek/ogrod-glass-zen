@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Droplets, Sprout, ArrowRight, CheckCircle, Calendar } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import LunarGardenInfo from "@/components/LunarGardenInfo";
@@ -31,11 +31,21 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
 
   const [isAddGardenOpen, setIsAddGardenOpen] = useState(false);
   const [newGardenName, setNewGardenName] = useState('');
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   const todaysTasks = getTodaysTasks();
   const upcomingTasks = getUpcomingTasks();
   const totalTasks = todaysTasks.length; // Only count today's tasks for the display
-  
+
+  // Update time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
   const handleCompleteTask = (taskId: string) => {
     const task = [...todaysTasks, ...upcomingTasks].find(t => t.id === taskId);
     if (task) {
@@ -75,12 +85,28 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Przed chwilą';
     if (diffInHours < 24) return `${diffInHours}h temu`;
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays === 1) return 'Wczoraj';
     return `${diffInDays} dni temu`;
+  };
+
+  const formatCurrentDate = () => {
+    return currentDateTime.toLocaleDateString('pl-PL', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatCurrentTime = () => {
+    return currentDateTime.toLocaleTimeString('pl-PL', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -92,13 +118,22 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
             Dzień dobry{currentUser?.displayName ? `, ${currentUser.displayName.split(' ')[0]}` : ''}! <Sprout className="h-5 w-5 sm:h-6 sm:w-6 text-emerald" />
           </h1>
           <p className="text-sm sm:text-base text-foreground-secondary">
-            {state.gardens.length === 0 
-              ? 'Utwórz swój pierwszy ogród' 
+            {state.gardens.length === 0
+              ? 'Utwórz swój pierwszy ogród'
               : 'Sprawdź swój ogród dziś'
             }
           </p>
         </div>
-        <Dialog open={isAddGardenOpen} onOpenChange={setIsAddGardenOpen}>
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="text-right">
+            <div className="text-sm sm:text-base font-medium text-foreground">
+              {formatCurrentDate()}
+            </div>
+            <div className="text-xs sm:text-sm text-foreground-secondary">
+              {formatCurrentTime()}
+            </div>
+          </div>
+          <Dialog open={isAddGardenOpen} onOpenChange={setIsAddGardenOpen}>
           <DialogTrigger asChild>
             <TooltipPlus text="Dodaj nowy ogród" showOnMobile>
               <Button
@@ -140,6 +175,7 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Lunar Garden Info */}
