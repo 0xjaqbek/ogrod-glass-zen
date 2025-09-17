@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ArrowRight, Grid3X3, Plus } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
+import { TooltipPlus } from "@/components/ui/tooltip-plus";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -98,13 +99,15 @@ const GardenDetail = ({ onBack, onBedSelect }: GardenDetailProps) => {
         
         <Dialog open={isAddBedOpen} onOpenChange={setIsAddBedOpen}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
-            >
-              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+            <TooltipPlus text="Dodaj nową grządkę" showOnMobile>
+              <Button
+                variant="outline"
+                size="icon"
+                className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
+              >
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </TooltipPlus>
           </DialogTrigger>
           <DialogContent className="glass">
             <DialogHeader>

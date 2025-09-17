@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GardenProvider } from "@/contexts/GardenContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import { useEffect } from "react";
 import { initializeNotifications } from "@/lib/notificationService";
 import { useTheme } from "@/hooks/useTheme";
@@ -152,15 +153,17 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <GardenProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-            <PWAInstallPrompt />
-            <UpdateModal />
-          </TooltipProvider>
-        </GardenProvider>
+        <SettingsProvider>
+          <GardenProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+              <PWAInstallPrompt />
+              <UpdateModal />
+            </TooltipProvider>
+          </GardenProvider>
+        </SettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

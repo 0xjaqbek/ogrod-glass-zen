@@ -1,6 +1,7 @@
 // src/pages/GardensPage.tsx
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { TooltipPlus } from "@/components/ui/tooltip-plus";
 import { Button } from "@/components/ui/button";
 import { Plus, Sprout, ArrowRight } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
@@ -33,13 +34,15 @@ const GardensPage = () => {
           </p>
         </div>
         <Link to="/gardens/new">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10"
-          >
-            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
+          <TooltipPlus text="Dodaj nowy ogród" showOnMobile>
+            <Button
+              variant="outline"
+              size="icon"
+              className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10"
+            >
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          </TooltipPlus>
         </Link>
       </div>
 

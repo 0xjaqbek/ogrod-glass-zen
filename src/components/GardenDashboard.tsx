@@ -11,6 +11,7 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import LunarGardenInfo from "@/components/LunarGardenInfo";
+import { TooltipPlus } from "@/components/ui/tooltip-plus";
 
 interface GardenDashboardProps {
   onGardenSelect?: () => void;
@@ -99,13 +100,15 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
         </div>
         <Dialog open={isAddGardenOpen} onOpenChange={setIsAddGardenOpen}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10"
-            >
-              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+            <TooltipPlus text="Dodaj nowy ogród" showOnMobile>
+              <Button
+                variant="outline"
+                size="icon"
+                className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10"
+              >
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </TooltipPlus>
           </DialogTrigger>
           <DialogContent className="glass">
             <DialogHeader>

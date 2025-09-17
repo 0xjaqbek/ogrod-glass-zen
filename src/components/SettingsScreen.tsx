@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Settings, Bell, User, Download, Upload, Trash2, AlertTriangle, Info, LogOut, ChevronDown, ChevronUp, Clock, Volume2, Moon, Sun } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { DEFAULT_SETTINGS, NOTIFICATION_FREQUENCIES, NOTIFICATION_ADVANCE_OPTIONS, SNOOZE_TIME_OPTIONS } from "@/constants/gardenConstants";
@@ -17,6 +18,7 @@ import { DEFAULT_SETTINGS, NOTIFICATION_FREQUENCIES, NOTIFICATION_ADVANCE_OPTION
 const SettingsScreen = () => {
   const { state, dispatch } = useGarden();
   const { logout } = useAuth();
+  const { setShowTooltips } = useSettings();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isClearDataOpen, setIsClearDataOpen] = useState(false);
@@ -62,6 +64,7 @@ const SettingsScreen = () => {
       units: 'metric' as const,
       theme: 'dark' as const,
       colorScheme: 'normal' as const,
+      showTooltips: true,
     };
 
     if (saved) {
@@ -111,7 +114,14 @@ const SettingsScreen = () => {
         [key]: value,
       }));
     }
-    
+
+    // Update settings context for showTooltips
+    if (key === 'showTooltips') {
+      setShowTooltips(value);
+      // Emit custom event for components in the same tab
+      window.dispatchEvent(new Event('settings-changed'));
+    }
+
     toast({
       title: "Ustawienia zaktualizowane ✓",
       description: "Zmiany zostały zapisane lokalnie",
@@ -466,6 +476,13 @@ const SettingsScreen = () => {
           hasSwitch: true,
           enabled: localSettings.colorScheme === 'reversed',
           onChange: (checked: boolean) => handleSettingChange('colorScheme', checked ? 'reversed' : 'normal')
+        },
+        {
+          label: "Podpowiedzi przycisków",
+          description: "Pokaż tooltipsy przy przyciskach dodawania",
+          hasSwitch: true,
+          enabled: localSettings.showTooltips,
+          onChange: (checked: boolean) => handleSettingChange('showTooltips', checked)
         },
         {
           label: "Informacje o profilu",

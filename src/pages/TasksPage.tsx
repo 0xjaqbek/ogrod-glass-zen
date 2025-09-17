@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { TooltipPlus } from "@/components/ui/tooltip-plus";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, CheckCircle, Clock, AlertCircle, Droplets, Sprout } from "lucide-react";
@@ -166,13 +167,15 @@ const TasksPage = () => {
           </p>
         </div>
         <Link to="/tasks/new">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10"
-          >
-            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
+          <TooltipPlus text="Dodaj nowe zadanie" showOnMobile>
+            <Button
+              variant="outline"
+              size="icon"
+              className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10"
+            >
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          </TooltipPlus>
         </Link>
       </div>
 

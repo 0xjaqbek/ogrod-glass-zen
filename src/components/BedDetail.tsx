@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, Plus, Droplets, Sprout, Clock, History, Calendar, CheckCircle } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
+import { TooltipPlus } from "@/components/ui/tooltip-plus";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -285,13 +286,15 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
         
         <Dialog open={isAddPlantOpen} onOpenChange={setIsAddPlantOpen}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
-            >
-              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+            <TooltipPlus text="Dodaj nową roślinę" showOnMobile>
+              <Button
+                variant="outline"
+                size="icon"
+                className="glass-button emerald-glow rounded-full h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
+              >
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </TooltipPlus>
           </DialogTrigger>
           <DialogContent className="glass max-h-[80vh] overflow-y-auto">
             <DialogHeader>

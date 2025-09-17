@@ -79,7 +79,7 @@ define(['./workbox-e755d862'], (function (workbox) { 'use strict';
    */
   workbox.precacheAndRoute([{
     "url": "/ogrod-glass-zen/index.html",
-    "revision": "0.avtvqks5bmo"
+    "revision": "0.orq93hmdmpg"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/ogrod-glass-zen/index.html"), {
