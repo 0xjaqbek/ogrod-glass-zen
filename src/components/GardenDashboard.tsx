@@ -214,62 +214,52 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
         </div>
       )}
 
-      {/* Gardens Section */}
-      {state.gardens.length > 0 && (
-        <div className="space-y-3 sm:space-y-4">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">
-            {state.gardens.length === 1 ? 'Ogród' : 'Ogrody'}
-          </h2>
-          <div className="space-y-3">
-            {state.gardens.map((garden) => {
-              const bedCount = garden.beds.length;
-              const plantCount = garden.beds.reduce((sum, bed) => sum + bed.plants.length, 0);
-              
-              return (
-                <Card 
-                  key={garden.id} 
-                  className="glass rounded-xl p-3 sm:p-6 glass-hover cursor-pointer" 
-                  onClick={() => handleGardenSelect(garden.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                      <div className="p-2 sm:p-3 rounded-lg bg-emerald/20">
-                        <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-emerald" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm sm:text-base font-medium text-foreground">
-                          {garden.name}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-foreground-secondary">
-                          {bedCount === 0 
-                            ? 'Brak grządek' 
-                            : `${bedCount} ${bedCount === 1 ? 'grządka' : bedCount < 5 ? 'grządki' : 'grządek'}, ${plantCount} ${plantCount === 1 ? 'roślina' : plantCount < 5 ? 'rośliny' : 'roślin'}`
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-foreground-secondary flex-shrink-0" />
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Recent Activities */}
       {state.activities.length > 0 && (
         <div className="space-y-3 sm:space-y-4">
           <h2 className="text-base sm:text-lg font-semibold text-foreground">Ostatnie aktywności</h2>
-          <div className="space-y-2">
-            {state.activities.slice(0, 3).map((activity) => (
-              <div key={activity.id} className="flex items-center justify-between text-sm">
-                <span className="text-foreground">{activity.action}</span>
-                <span className="text-foreground-secondary text-xs">
-                  {formatTimeAgo(activity.date)}
-                </span>
-              </div>
-            ))}
+          <div className="space-y-3">
+            {state.activities.slice(0, 3).map((activity) => {
+              // Find garden and bed info for this activity
+              const garden = state.gardens.find(g => g.id === activity.gardenId);
+              const bed = garden?.beds.find(b => b.id === activity.bedId);
+
+              return (
+                <Card key={activity.id} className="glass rounded-xl p-3 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                      <div className="p-2 sm:p-3 rounded-lg bg-emerald/20">
+                        {activity.action.includes('Podlano') ? (
+                          <Droplets className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+                        ) : activity.action.includes('Nawożono') ? (
+                          <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                        ) : activity.action.includes('Posadzono') ? (
+                          <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-emerald" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-base font-medium text-foreground">
+                          {activity.action}
+                        </h3>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-xs sm:text-sm text-foreground-secondary">
+                            {formatTimeAgo(activity.date)}
+                          </p>
+                          {(garden || bed) && (
+                            <p className="text-xs text-foreground-secondary">
+                              {garden?.name || 'Nieznany ogród'}
+                              {bed && ` • ${bed.name}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         </div>
       )}

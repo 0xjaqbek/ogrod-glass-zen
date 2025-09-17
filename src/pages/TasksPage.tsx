@@ -120,6 +120,23 @@ const TasksPage = () => {
     });
   };
 
+  const formatDaysUntil = (dueDate: Date) => {
+    if (!dueDate) return '';
+    const taskDate = dueDate instanceof Date ? dueDate : new Date(dueDate);
+    if (isNaN(taskDate.getTime())) return '';
+
+    const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffInMs = taskDateOnly.getTime() - todayOnly.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) return 'dziś';
+    if (diffInDays === 1) return '1 dzień';
+    if (diffInDays === -1) return '1 dzień temu';
+    if (diffInDays > 0) return `${diffInDays} dni`;
+    return `${Math.abs(diffInDays)} dni temu`;
+  };
+
   const isOverdue = (dueDate: Date) => {
     if (!dueDate) return false;
     const taskDate = dueDate instanceof Date ? dueDate : new Date(dueDate);
@@ -288,7 +305,7 @@ const TasksPage = () => {
                           )}
                           <Calendar className="h-3 w-3 mr-1" />
                           <span className={isOverdue(task.dueDate) ? 'text-red-500 font-medium' : ''}>
-                            Do wykonania {isOverdue(task.dueDate) ? 'od' : isToday(task.dueDate) ? 'dziś' : 'za'}: {formatDate(task.dueDate)}
+                            Do wykonania{isToday(task.dueDate) ? '' : ':'} {formatDaysUntil(task.dueDate)}
                           </span>
                         </div>
 

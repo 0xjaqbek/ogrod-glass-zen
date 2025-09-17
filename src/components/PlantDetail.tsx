@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Droplets, Calendar, CheckCircle, Edit, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Droplets, Calendar, CheckCircle, Edit, Trash2, Plus, Sprout, Clock, History, ChevronDown, ChevronUp } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -19,9 +19,10 @@ interface PlantDetailProps {
 }
 
 const PlantDetail = ({ plantId, onBack }: PlantDetailProps) => {
-  const { state, dispatch, addTask, completeTask, getTodaysTasks, getUpcomingTasks } = useGarden();
+  const { state, dispatch, addTask, addActivity, completeTask, getTodaysTasks, getUpcomingTasks } = useGarden();
   const [isEditPlantOpen, setIsEditPlantOpen] = useState(false);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
   const [editedPlant, setEditedPlant] = useState({
     name: '',
     emoji: '',
@@ -191,9 +192,84 @@ const PlantDetail = ({ plantId, onBack }: PlantDetailProps) => {
     const wateringTasks = plantTasks.filter(task => task.type === 'watering' && !task.completed);
     wateringTasks.forEach(task => completeTask(task.id, plant.id, bedId));
 
+    // Add activity record
+    addActivity({
+      action: `Podlano roślinę ${plant.emoji} ${plant.name}`,
+      date: new Date(),
+      gardenId: selectedGarden.id,
+      bedId: bedId,
+      plantId: plant.id,
+    });
+
     toast({
       title: "Roślina podlana! 💧",
       description: `${plant.emoji} ${plant.name} została podlana`,
+    });
+  };
+
+  const handleFertilizePlant = () => {
+    // Update plant's last fertilized date
+    const updatedPlant = { ...plant, lastFertilized: new Date() };
+    dispatch({
+      type: 'UPDATE_PLANT',
+      payload: { gardenId: selectedGarden.id, bedId, plant: updatedPlant }
+    });
+
+    // Complete any fertilizing tasks
+    const fertilizingTasks = plantTasks.filter(task => task.type === 'fertilizing' && !task.completed);
+    fertilizingTasks.forEach(task => completeTask(task.id, plant.id, bedId));
+
+    // Add activity record
+    addActivity({
+      action: `Nawożono roślinę ${plant.emoji} ${plant.name}`,
+      date: new Date(),
+      gardenId: selectedGarden.id,
+      bedId: bedId,
+      plantId: plant.id,
+    });
+
+    toast({
+      title: "Roślina nawożona! 🌱",
+      description: `${plant.emoji} ${plant.name} została nawożona`,
+    });
+  };
+
+  // Get plant-specific activities and tasks
+  const getPlantHistory = () => {
+    const activities = state.activities
+      .filter(activity => activity.plantId === plantId)
+      .map(activity => ({
+        ...activity,
+        type: 'activity' as const
+      }));
+
+    const tasks = state.tasks
+      .filter(task => task.plantId === plantId)
+      .map(task => ({
+        id: task.id,
+        action: task.completed
+          ? `Ukończono zadanie: ${task.title}`
+          : `Zadanie: ${task.title}`,
+        date: task.dueDate,
+        gardenId: task.gardenId,
+        bedId: task.bedId,
+        plantId: task.plantId,
+        type: 'task' as const,
+        completed: task.completed,
+        taskType: task.type
+      }));
+
+    return [...activities, ...tasks]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  const formatActivityDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('pl-PL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -286,8 +362,8 @@ const PlantDetail = ({ plantId, onBack }: PlantDetailProps) => {
       {/* Quick Actions */}
       <Card className="glass rounded-xl p-3 sm:p-6">
         <h3 className="text-sm sm:text-base font-semibold text-foreground mb-3">Szybkie akcje</h3>
-        <div className="grid grid-cols-2 gap-2">
-          <Button 
+        <div className="grid grid-cols-3 gap-2">
+          <Button
             onClick={handleWaterPlant}
             className="bg-blue-500 hover:bg-blue-600 text-white"
             size="sm"
@@ -295,38 +371,52 @@ const PlantDetail = ({ plantId, onBack }: PlantDetailProps) => {
             <Droplets className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
             Podlej
           </Button>
-          <Button 
+          <Button
+            onClick={handleFertilizePlant}
+            className="bg-green-500 hover:bg-green-600 text-white"
+            size="sm"
+          >
+            <Sprout className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            Nawieź
+          </Button>
+          <Button
             onClick={() => setIsAddTaskOpen(true)}
             variant="outline"
             className="glass-button"
             size="sm"
           >
             <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-            Dodaj zadanie
+            Zadanie
           </Button>
         </div>
-        {plant.lastWatered && (
-          <p className="text-xs text-foreground-secondary mt-2">
-            Ostatnio podlana: {Math.floor((Date.now() - plant.lastWatered.getTime()) / (1000 * 60 * 60 * 24))} dni temu
-          </p>
-        )}
+        <div className="mt-2 space-y-1">
+          {plant.lastWatered && (() => {
+            const wateredDate = new Date(plant.lastWatered);
+            const isValidDate = !isNaN(wateredDate.getTime());
+            const daysAgo = isValidDate ? Math.floor((Date.now() - wateredDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+            return isValidDate && (
+              <p className="text-xs text-foreground-secondary">
+                Ostatnio podlana: {daysAgo} dni temu
+              </p>
+            );
+          })()}
+          {plant.lastFertilized && (() => {
+            const fertilizedDate = new Date(plant.lastFertilized);
+            const isValidDate = !isNaN(fertilizedDate.getTime());
+            const daysAgo = isValidDate ? Math.floor((Date.now() - fertilizedDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+            return isValidDate && (
+              <p className="text-xs text-foreground-secondary">
+                Ostatnio nawożona: {daysAgo} dni temu
+              </p>
+            );
+          })()}
+        </div>
       </Card>
 
       {/* Tasks */}
       <div className="space-y-3 sm:space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">Zadania</h2>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsAddTaskOpen(true)}
-            className="glass-button"
-          >
-            <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-            Dodaj
-          </Button>
-        </div>
-
         {plantTasks.length > 0 ? (
           <div className="space-y-2">
             {plantTasks.map((task) => {
@@ -389,6 +479,108 @@ const PlantDetail = ({ plantId, onBack }: PlantDetailProps) => {
           </Card>
         )}
       </div>
+
+      {/* Plant History - Collapsible */}
+      <Card className="glass rounded-xl">
+        {/* Header Button */}
+        <button
+          onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
+          className="w-full flex items-center justify-between p-3 sm:p-6 hover:bg-glass-hover transition-all duration-300 group rounded-xl"
+        >
+          <div className="flex items-center space-x-2">
+            <History className="h-4 w-4 sm:h-5 sm:w-5 text-emerald flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+            <h3 className="text-sm sm:text-base font-semibold text-foreground">
+              Historia rośliny
+            </h3>
+            {getPlantHistory().length > 0 && (
+              <span className="text-xs text-foreground-secondary">
+                ({getPlantHistory().length})
+              </span>
+            )}
+          </div>
+          {isHistoryExpanded ? (
+            <ChevronUp className="h-5 w-5 text-foreground-secondary transition-transform duration-300" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-foreground-secondary transition-transform duration-300" />
+          )}
+        </button>
+
+        {/* Collapsible Content */}
+        <div className={`
+          transition-all duration-300 ease-out overflow-hidden
+          ${isHistoryExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}
+        `}>
+          <div className="px-3 sm:px-6 pb-3 sm:pb-6">
+            {getPlantHistory().length > 0 ? (
+              <div className="space-y-3">
+                {getPlantHistory().slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-start space-x-3 p-3 bg-emerald/[0.02] dark:bg-emerald/[0.01] rounded-lg">
+                    <div className="flex-shrink-0 p-2 rounded-lg bg-emerald/20">
+                      {item.type === 'task' ? (
+                        item.taskType === 'watering' ? (
+                          <Droplets className={`h-4 w-4 ${item.completed ? 'text-blue-500' : 'text-blue-300'}`} />
+                        ) : item.taskType === 'fertilizing' ? (
+                          <Sprout className={`h-4 w-4 ${item.completed ? 'text-green-500' : 'text-green-300'}`} />
+                        ) : item.taskType === 'harvesting' ? (
+                          <CheckCircle className={`h-4 w-4 ${item.completed ? 'text-orange-500' : 'text-orange-300'}`} />
+                        ) : (
+                          <Calendar className={`h-4 w-4 ${item.completed ? 'text-emerald' : 'text-foreground-secondary'}`} />
+                        )
+                      ) : item.action.includes('Podlano') ? (
+                        <Droplets className="h-4 w-4 text-blue-500" />
+                      ) : item.action.includes('Nawożono') ? (
+                        <Sprout className="h-4 w-4 text-green-500" />
+                      ) : item.action.includes('Posadzono') ? (
+                        <Plus className="h-4 w-4 text-emerald" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-foreground-secondary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium ${
+                        item.type === 'task' && !item.completed
+                          ? 'text-foreground-secondary'
+                          : 'text-foreground'
+                      }`}>
+                        {item.action}
+                      </p>
+                      <p className="text-xs text-foreground-secondary">
+                        {formatActivityDate(item.date)}
+                      </p>
+                      {item.type === 'task' && (
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                            item.completed
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                          }`}>
+                            {item.completed ? 'Ukończone' : 'Oczekuje'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {getPlantHistory().length > 5 && (
+                  <p className="text-xs text-foreground-secondary text-center">
+                    ...i {getPlantHistory().length - 5} więcej wydarzeń
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Clock className="h-6 w-6 text-foreground-secondary mx-auto mb-2" />
+                <p className="text-sm text-foreground-secondary">
+                  Brak historii dla tej rośliny
+                </p>
+                <p className="text-xs text-foreground-secondary mt-1">
+                  Historia będzie wyświetlana tutaj po wykonaniu akcji
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
 
       {/* Plant Notes */}
       {plant.notes && (

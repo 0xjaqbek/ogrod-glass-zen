@@ -186,8 +186,22 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
         bedId: bed.id,
       });
 
-      // Add individual plant activities for fertilizing
+      // Update lastFertilized for all plants in the bed and add individual activities
       bed.plants.forEach(plant => {
+        const updatedPlant = {
+          ...plant,
+          lastFertilized: now
+        };
+
+        dispatch({
+          type: 'UPDATE_PLANT',
+          payload: {
+            gardenId: selectedGarden.id,
+            bedId: bed.id,
+            plant: updatedPlant
+          }
+        });
+
         addActivity({
           action: `Nawożono roślinę ${plant.emoji} ${plant.name}`,
           date: now,
@@ -450,11 +464,28 @@ const BedDetail = ({ bedId, onBack, onPlantSelect }: BedDetailProps) => {
                         >
                           {plant.phase}
                         </Badge>
-                        {plant.lastWatered && (
-                          <Badge variant="outline" className="glass text-xs">
-                            Podlano: {Math.floor((Date.now() - plant.lastWatered.getTime()) / (1000 * 60 * 60 * 24))} dni temu
-                          </Badge>
-                        )}
+                        {plant.lastWatered && (() => {
+                          const wateredDate = new Date(plant.lastWatered);
+                          const isValidDate = !isNaN(wateredDate.getTime());
+                          const daysAgo = isValidDate ? Math.floor((Date.now() - wateredDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+                          return isValidDate && (
+                            <Badge variant="outline" className="glass text-xs">
+                              Podlano: {daysAgo} dni temu
+                            </Badge>
+                          );
+                        })()}
+                        {plant.lastFertilized && (() => {
+                          const fertilizedDate = new Date(plant.lastFertilized);
+                          const isValidDate = !isNaN(fertilizedDate.getTime());
+                          const daysAgo = isValidDate ? Math.floor((Date.now() - fertilizedDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+                          return isValidDate && (
+                            <Badge variant="outline" className="glass text-xs">
+                              Nawożono: {daysAgo} dni temu
+                            </Badge>
+                          );
+                        })()}
                       </div>
                       {plant.notes && (
                         <p className="text-xs text-foreground-secondary mt-1 truncate">

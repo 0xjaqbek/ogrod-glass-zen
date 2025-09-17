@@ -11,6 +11,7 @@ export interface Plant {
   progress: number;
   plantedDate: Date;
   lastWatered?: Date;
+  lastFertilized?: Date;
   variety?: string;
   notes?: string;
 }
