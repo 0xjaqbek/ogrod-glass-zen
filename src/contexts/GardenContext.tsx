@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import syncService from '@/lib/syncService';
+import { enhancedSyncService } from '@/lib/enhancedSyncService';
+import { optimisticUpdateService } from '@/lib/optimisticUpdateService';
+import { VersionedDocument } from '@/types/garden';
 
-// Types
-export interface Plant {
+// Types with versioning support
+export interface Plant extends VersionedDocument {
   id: string;
   name: string;
   emoji: string;
@@ -16,7 +18,7 @@ export interface Plant {
   notes?: string;
 }
 
-export interface Bed {
+export interface Bed extends VersionedDocument {
   id: string;
   name: string;
   plants: Plant[];
@@ -25,7 +27,7 @@ export interface Bed {
   location?: string;
 }
 
-export interface Garden {
+export interface Garden extends VersionedDocument {
   id: string;
   name: string;
   beds: Bed[];
@@ -33,7 +35,7 @@ export interface Garden {
   description?: string;
 }
 
-export interface Task {
+export interface Task extends VersionedDocument {
   id: string;
   title: string;
   description: string;
@@ -46,7 +48,7 @@ export interface Task {
   gardenId: string;
 }
 
-export interface Activity {
+export interface Activity extends VersionedDocument {
   id: string;
   action: string;
   date: Date;
@@ -55,7 +57,7 @@ export interface Activity {
   plantId?: string;
 }
 
-export interface Notification {
+export interface Notification extends VersionedDocument {
   id: string;
   title: string;
   message: string;
@@ -355,6 +357,24 @@ export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+// Helper function to add versioning metadata
+const addVersioningMetadata = (item: any, userId: string): any => {
+  const now = new Date();
+  return {
+    ...item,
+    version: (item.version || 0) + 1,
+    lastModified: now,
+    lastModifiedBy: userId,
+    createdAt: item.createdAt || now,
+    createdBy: item.createdBy || userId
+  };
+};
+
+// Helper function to prepare item for optimistic update
+const prepareForOptimisticUpdate = (item: any, userId: string): any => {
+  return addVersioningMetadata(item, userId);
+};
+
 // Context
 export interface GardenContextType {
   state: GardenState;
@@ -411,7 +431,7 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!currentUser) {
       // Clear data when user logs out
-      syncService.clearUserData();
+      enhancedSyncService.clearUserData();
       dispatch({ type: 'LOAD_DATA', payload: { gardens: [], tasks: [], notifications: [], activities: [] } });
       setIsInitialized(false);
       return;
@@ -428,8 +448,8 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.log('Initializing user and loading data with sync service');
         setIsInitialized(true);
 
-        // Initialize user with sync service (handles offline-first loading)
-        const syncResult = await syncService.initializeUser(currentUser.uid);
+        // Initialize user with enhanced sync service (handles offline-first loading)
+        const syncResult = await enhancedSyncService.initializeUser(currentUser.uid);
 
         if (syncResult.success && syncResult.syncedData) {
           // Update state with loaded data (from local storage or Firebase)
@@ -466,7 +486,7 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
 
         // Skip saving if sync is in progress to prevent loops
-        if (syncService.isSyncInProgress()) {
+        if (enhancedSyncService.isSyncInProgress()) {
           console.log('Skipping save - sync in progress');
           return;
         }
@@ -479,13 +499,13 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           userId: currentUser.uid
         });
 
-        // Save to sync service (handles offline/online automatically)
-        await syncService.saveData(currentUser.uid, {
+        // Save to enhanced sync service (handles offline/online automatically with optimistic updates)
+        await enhancedSyncService.saveData(currentUser.uid, {
           gardens: state.gardens,
           tasks: state.tasks,
           notifications: state.notifications,
           activities: state.activities
-        });
+        }, { priority: 'medium' });
 
         console.log('Successfully saved all data via sync service');
       } catch (error) {
@@ -499,18 +519,69 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearTimeout(timeoutId);
   }, [currentUser, isInitialized, state.gardens, state.tasks, state.notifications, state.activities]);
 
-  // Garden actions
+  // Garden actions with optimistic updates
   const addGarden = useCallback((garden: Omit<Garden, 'id'>) => {
-    dispatch({ type: 'ADD_GARDEN', payload: garden });
-  }, []);
+    const newGarden = {
+      ...garden,
+      id: generateId()
+    };
+
+    if (currentUser) {
+      const versionedGarden = prepareForOptimisticUpdate(newGarden, currentUser.uid);
+      dispatch({ type: 'ADD_GARDEN', payload: versionedGarden });
+
+      // Apply optimistic update
+      optimisticUpdateService.applyOptimisticUpdate(
+        'create',
+        'gardens',
+        versionedGarden.id,
+        versionedGarden
+      );
+    } else {
+      dispatch({ type: 'ADD_GARDEN', payload: newGarden });
+    }
+  }, [currentUser]);
 
   const updateGarden = useCallback((garden: Garden) => {
-    dispatch({ type: 'UPDATE_GARDEN', payload: garden });
-  }, []);
+    if (currentUser) {
+      const versionedGarden = prepareForOptimisticUpdate(garden, currentUser.uid);
+      const currentGarden = state.gardens.find(g => g.id === garden.id);
+
+      dispatch({ type: 'UPDATE_GARDEN', payload: versionedGarden });
+
+      // Apply optimistic update
+      optimisticUpdateService.applyOptimisticUpdate(
+        'update',
+        'gardens',
+        versionedGarden.id,
+        versionedGarden,
+        currentGarden
+      );
+    } else {
+      dispatch({ type: 'UPDATE_GARDEN', payload: garden });
+    }
+  }, [currentUser, state.gardens]);
 
   const deleteGarden = useCallback((gardenId: string) => {
-    dispatch({ type: 'DELETE_GARDEN', payload: gardenId });
-  }, []);
+    if (currentUser) {
+      const currentGarden = state.gardens.find(g => g.id === gardenId);
+
+      dispatch({ type: 'DELETE_GARDEN', payload: gardenId });
+
+      // Apply optimistic update
+      if (currentGarden) {
+        optimisticUpdateService.applyOptimisticUpdate(
+          'delete',
+          'gardens',
+          gardenId,
+          null,
+          currentGarden
+        );
+      }
+    } else {
+      dispatch({ type: 'DELETE_GARDEN', payload: gardenId });
+    }
+  }, [currentUser, state.gardens]);
 
   const selectGarden = useCallback((garden: Garden) => {
     dispatch({ type: 'SELECT_GARDEN', payload: garden });

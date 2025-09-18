@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import syncService from '@/lib/syncService';
+import syncService from '@/lib/enhancedSyncService';
 
 interface SyncStatusProps {
   className?: string;
@@ -133,35 +133,55 @@ export const SyncStatus: React.FC<SyncStatusProps> = ({ className = '' }) => {
   };
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <button
-        onClick={handleManualSync}
-        disabled={syncStatus.isSyncing || !currentUser}
-        className="flex items-center space-x-2 px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        title={syncStatus.isOnline ? 'Click to sync' : 'Offline - changes saved locally'}
-      >
-        {getStatusIcon()}
-        <div className="flex flex-col items-start">
-          <span className={`text-xs font-medium ${getStatusColor()}`}>
-            {getStatusText()}
-          </span>
-          {lastSyncText && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {lastSyncText}
+    <>
+      <div className={`flex items-center space-x-2 ${className}`}>
+        <button
+          onClick={syncState.conflicts > 0 ? handleShowConflicts : handleManualSync}
+          disabled={syncState.isSyncing || !currentUser}
+          className="flex items-center space-x-2 px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title={
+            syncState.conflicts > 0 ? 'Rozwiąż konflikty danych' :
+            syncState.isOnline ? 'Kliknij aby zsynchronizować' : 'Offline - zmiany zapisane lokalnie'
+          }
+        >
+          {getStatusIcon()}
+          <div className="flex flex-col items-start">
+            <span className={`text-xs font-medium ${getStatusColor()}`}>
+              {getStatusText()}
             </span>
-          )}
-        </div>
-      </button>
+            {lastSyncText && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {lastSyncText}
+              </span>
+            )}
+          </div>
+        </button>
 
-      {!syncStatus.isOnline && (
-        <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 rounded-md">
-          <WifiOff className="h-3 w-3 text-yellow-600" />
-          <span className="text-xs text-yellow-700 dark:text-yellow-400">
-            Changes saved locally
-          </span>
-        </div>
-      )}
-    </div>
+        {!syncState.isOnline && (
+          <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 rounded-md">
+            <WifiOff className="h-3 w-3 text-yellow-600" />
+            <span className="text-xs text-yellow-700 dark:text-yellow-400">
+              Zmiany zapisane lokalnie
+            </span>
+          </div>
+        )}
+
+        {syncState.failedOperations > 0 && (
+          <div className="flex items-center space-x-1 px-2 py-1 bg-red-100 dark:bg-red-900/20 rounded-md">
+            <AlertCircle className="h-3 w-3 text-red-600" />
+            <span className="text-xs text-red-700 dark:text-red-400">
+              {syncState.failedOperations} błędów
+            </span>
+          </div>
+        )}
+      </div>
+
+      <ConflictResolutionModal
+        isOpen={showConflictModal}
+        onClose={() => setShowConflictModal(false)}
+        onResolve={handleConflictResolve}
+      />
+    </>
   );
 };
 
