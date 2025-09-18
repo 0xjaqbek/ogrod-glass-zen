@@ -1,8 +1,12 @@
 // src/components/SyncStatus.tsx
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle, Clock, Database } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import syncService from '@/lib/enhancedSyncService';
+import { enhancedSyncService } from '@/lib/enhancedSyncService';
+import { conflictResolutionService } from '@/lib/conflictResolutionService';
+import { operationQueueService } from '@/lib/operationQueueService';
+import { SyncState } from '@/types/garden';
+import ConflictResolutionModal from './ConflictResolutionModal';
 
 interface SyncStatusProps {
   className?: string;
@@ -10,89 +14,108 @@ interface SyncStatusProps {
 
 export const SyncStatus: React.FC<SyncStatusProps> = ({ className = '' }) => {
   const { currentUser } = useAuth();
-  const [syncStatus, setSyncStatus] = useState(() => syncService.getSyncStatus());
+  const [syncState, setSyncState] = useState<SyncState>(() => enhancedSyncService.getSyncState());
   const [lastSyncText, setLastSyncText] = useState<string>('');
+  const [showConflictModal, setShowConflictModal] = useState<boolean>(false);
 
   // Update sync status
   const updateSyncStatus = () => {
-    const status = syncService.getSyncStatus();
-    setSyncStatus(status);
+    const state = enhancedSyncService.getSyncState();
+    setSyncState(state);
 
-    if (status.lastSync > 0) {
+    if (state.lastSyncTime > 0) {
       const now = Date.now();
-      const diff = now - status.lastSync;
+      const diff = now - state.lastSyncTime;
 
       if (diff < 60000) { // Less than 1 minute
-        setLastSyncText('Just now');
+        setLastSyncText('Teraz');
       } else if (diff < 3600000) { // Less than 1 hour
         const minutes = Math.floor(diff / 60000);
-        setLastSyncText(`${minutes}m ago`);
+        setLastSyncText(`${minutes}min temu`);
       } else if (diff < 86400000) { // Less than 1 day
         const hours = Math.floor(diff / 3600000);
-        setLastSyncText(`${hours}h ago`);
+        setLastSyncText(`${hours}godz temu`);
       } else {
         const days = Math.floor(diff / 86400000);
-        setLastSyncText(`${days}d ago`);
+        setLastSyncText(`${days}dni temu`);
       }
     } else {
-      setLastSyncText('Never');
+      setLastSyncText('Nigdy');
     }
   };
 
-  // Listen for online/offline events
+  // Listen for sync state changes
   useEffect(() => {
-    const handleOnline = () => updateSyncStatus();
-    const handleOffline = () => updateSyncStatus();
+    const handleStateUpdate = (state: SyncState) => {
+      setSyncState(state);
+    };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    const handleSyncResult = () => {
+      setTimeout(updateSyncStatus, 100);
+    };
+
+    enhancedSyncService.addStateListener(handleStateUpdate);
+    enhancedSyncService.addSyncListener(handleSyncResult);
 
     // Update status every 30 seconds
     const interval = setInterval(updateSyncStatus, 30000);
 
-    // Listen for sync events
-    const handleSyncResult = () => {
-      setTimeout(updateSyncStatus, 100); // Small delay to ensure state is updated
-    };
-
-    syncService.addSyncListener(handleSyncResult);
-
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      enhancedSyncService.removeStateListener(handleStateUpdate);
+      enhancedSyncService.removeSyncListener(handleSyncResult);
       clearInterval(interval);
-      syncService.removeSyncListener(handleSyncResult);
     };
   }, []);
 
-  // Update status on mount and when sync status changes
+  // Update status on mount and when sync state changes
   useEffect(() => {
     updateSyncStatus();
-  }, [syncStatus.lastSync, syncStatus.isOnline, syncStatus.isSyncing]);
+  }, [syncState.lastSyncTime, syncState.isOnline, syncState.isSyncing]);
 
   // Manual sync
   const handleManualSync = async () => {
-    if (!currentUser || syncStatus.isSyncing) return;
+    if (!currentUser || syncState.isSyncing) return;
 
     try {
-      await syncService.forcSync(currentUser.uid);
+      await enhancedSyncService.forceSync(currentUser.uid);
     } catch (error) {
       console.error('Manual sync failed:', error);
     }
   };
 
+  // Handle conflict resolution
+  const handleShowConflicts = () => {
+    setShowConflictModal(true);
+  };
+
+  const handleConflictResolve = async (conflictId: string, resolvedData: any) => {
+    // The conflict is already resolved by the modal
+    // Trigger a sync to apply the resolution
+    if (currentUser) {
+      try {
+        await enhancedSyncService.forceSync(currentUser.uid);
+      } catch (error) {
+        console.error('Sync after conflict resolution failed:', error);
+      }
+    }
+  };
+
   // Get status icon
   const getStatusIcon = () => {
-    if (syncStatus.isSyncing) {
+    if (syncState.isSyncing) {
       return <RefreshCw className="h-4 w-4 animate-spin" />;
     }
 
-    if (!syncStatus.isOnline) {
+    if (!syncState.isOnline) {
       return <WifiOff className="h-4 w-4 text-red-500" />;
     }
 
-    if (syncStatus.pendingChanges > 0) {
-      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+    if (syncState.conflicts > 0) {
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
+    }
+
+    if (syncState.pendingOperations > 0 || syncState.failedOperations > 0) {
+      return <Clock className="h-4 w-4 text-yellow-500" />;
     }
 
     return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -100,32 +123,50 @@ export const SyncStatus: React.FC<SyncStatusProps> = ({ className = '' }) => {
 
   // Get status text
   const getStatusText = () => {
-    if (syncStatus.isSyncing) {
-      return 'Syncing...';
+    if (syncState.isSyncing) {
+      return syncState.syncProgress ?
+        `${syncState.syncProgress.operation}... ${syncState.syncProgress.current}/${syncState.syncProgress.total}` :
+        'Synchronizacja...';
     }
 
-    if (!syncStatus.isOnline) {
+    if (!syncState.isOnline) {
       return 'Offline';
     }
 
-    if (syncStatus.pendingChanges > 0) {
-      return `${syncStatus.pendingChanges} pending`;
+    if (syncState.conflicts > 0) {
+      return `${syncState.conflicts} konfliktów`;
     }
 
-    return 'Synced';
+    if (syncState.failedOperations > 0) {
+      return `${syncState.failedOperations} błędów`;
+    }
+
+    if (syncState.pendingOperations > 0) {
+      return `${syncState.pendingOperations} oczekujących`;
+    }
+
+    return 'Zsynchronizowane';
   };
 
   // Get status color
   const getStatusColor = () => {
-    if (syncStatus.isSyncing) {
+    if (syncState.isSyncing) {
       return 'text-blue-600';
     }
 
-    if (!syncStatus.isOnline) {
+    if (!syncState.isOnline) {
       return 'text-red-600';
     }
 
-    if (syncStatus.pendingChanges > 0) {
+    if (syncState.conflicts > 0) {
+      return 'text-red-600';
+    }
+
+    if (syncState.failedOperations > 0) {
+      return 'text-red-600';
+    }
+
+    if (syncState.pendingOperations > 0) {
       return 'text-yellow-600';
     }
 

@@ -4,16 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle, Clock, Droplets, Sprout, Grid3X3, Search, Filter, Calendar, Trash2 } from "lucide-react";
+import { CheckCircle, Clock, Droplets, Sprout, Grid3X3, Search, Filter, Calendar, Trash2, WifiOff, Database } from "lucide-react";
 import { useGarden } from "@/contexts/GardenContext";
 import { useState, useMemo } from "react";
 import { toast } from "@/hooks/use-toast";
+import { enhancedSyncService } from "@/lib/enhancedSyncService";
 
 const HistoryScreen = () => {
   const { state, dispatch } = useGarden();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('all');
+  const [isOnline] = useState(() => enhancedSyncService.isDeviceOnline());
 
   // Filter and search activities
   const filteredActivities = useMemo(() => {
@@ -32,17 +34,21 @@ const HistoryScreen = () => {
         const action = activity.action.toLowerCase();
         switch (filterType) {
           case 'watering':
-            return action.includes('podlano') || action.includes('podlej');
+            return action.includes('podlano') || action.includes('podlej') || action.includes('nawadniano');
           case 'planting':
-            return action.includes('posadzono') || action.includes('sadzenie');
+            return action.includes('posadzono') || action.includes('sadzenie') || action.includes('zasadzono');
           case 'harvesting':
-            return action.includes('zebrano') || action.includes('zbiory');
+            return action.includes('zebrano') || action.includes('zbiory') || action.includes('zebranie');
           case 'garden':
-            return action.includes('ogród') || action.includes('utworzono');
+            return action.includes('ogród') || action.includes('utworzono ogród');
           case 'bed':
-            return action.includes('grządka') || action.includes('grządkę');
+            return action.includes('grządka') || action.includes('grządkę') || action.includes('utworzono grządkę');
+          case 'plant':
+            return action.includes('posadzono') && !action.includes('grządkę') && !action.includes('ogród');
+          case 'creation':
+            return action.includes('utworzono') || action.includes('posadzono');
           case 'task':
-            return action.includes('zadanie') || action.includes('wykonano');
+            return action.includes('zadanie') || action.includes('wykonano') || action.includes('ukończono');
           default:
             return true;
         }
@@ -93,12 +99,14 @@ const HistoryScreen = () => {
 
   const getActivityCategory = (action: string) => {
     const actionLower = action.toLowerCase();
-    if (actionLower.includes('podlano')) return 'Podlewanie';
-    if (actionLower.includes('posadzono')) return 'Sadzenie';
-    if (actionLower.includes('zebrano')) return 'Zbiory';
-    if (actionLower.includes('grządka')) return 'Grządka';
+    if (actionLower.includes('podlano') || actionLower.includes('nawadniano')) return 'Podlewanie';
+    if (actionLower.includes('posadzono') && !actionLower.includes('ogród') && !actionLower.includes('grządkę')) return 'Sadzenie';
+    if (actionLower.includes('zebrano') || actionLower.includes('zebranie')) return 'Zbiory';
+    if (actionLower.includes('utworzono grządkę') || (actionLower.includes('grządkę') && actionLower.includes('utworzono'))) return 'Nowa grządka';
+    if (actionLower.includes('utworzono ogród') || (actionLower.includes('ogród') && actionLower.includes('utworzono'))) return 'Nowy ogród';
+    if (actionLower.includes('grządka') || actionLower.includes('grządkę')) return 'Grządka';
     if (actionLower.includes('ogród')) return 'Ogród';
-    if (actionLower.includes('zadanie')) return 'Zadanie';
+    if (actionLower.includes('zadanie') || actionLower.includes('wykonano') || actionLower.includes('ukończono')) return 'Zadanie';
     return 'Inne';
   };
 
@@ -194,12 +202,25 @@ const HistoryScreen = () => {
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-lg sm:text-2xl font-bold text-foreground">Historia</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground">Historia</h1>
+          {!isOnline && (
+            <div className="flex items-center space-x-2 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/20 rounded-md">
+              <WifiOff className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm text-yellow-700 dark:text-yellow-400">Dane z pamięci podręcznej</span>
+            </div>
+          )}
+        </div>
         <p className="text-sm sm:text-base text-foreground-secondary">
-          {stats.total === 0 
-            ? 'Brak aktywności w ogrodzie' 
+          {stats.total === 0
+            ? 'Brak aktywności w ogrodzie'
             : `${stats.total} aktywności w ogrodzie`
           }
+          {!isOnline && stats.total > 0 && (
+            <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
+              (ostatnie znane dane)
+            </span>
+          )}
         </p>
       </div>
 
@@ -245,9 +266,10 @@ const HistoryScreen = () => {
                 <SelectContent className="glass">
                   <SelectItem value="all">Wszystkie</SelectItem>
                   <SelectItem value="watering">💧 Podlewanie</SelectItem>
-                  <SelectItem value="planting">🌱 Sadzenie</SelectItem>
+                  <SelectItem value="plant">🌱 Sadzenie roślin</SelectItem>
                   <SelectItem value="harvesting">🥕 Zbiory</SelectItem>
-                  <SelectItem value="garden">🏡 Ogród</SelectItem>
+                  <SelectItem value="creation">✨ Tworzenie</SelectItem>
+                  <SelectItem value="garden">🏡 Ogrody</SelectItem>
                   <SelectItem value="bed">🌿 Grządki</SelectItem>
                   <SelectItem value="task">✅ Zadania</SelectItem>
                 </SelectContent>

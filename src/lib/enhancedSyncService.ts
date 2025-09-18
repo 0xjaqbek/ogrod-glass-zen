@@ -746,31 +746,53 @@ class EnhancedSyncService {
     };
   }
 
-  // Load data with optimistic updates
+  // Load data with optimistic updates - offline-first approach
   async loadData(userId: string): Promise<LocalData> {
+    // Always try to load from local storage first (offline-first)
     const baseData = loadAllDataFromLocal();
+    const optimisticData = this.getOptimisticData();
 
-    // If we have local data, return it with optimistic updates
-    if (hasLocalData()) {
+    // If we have any local data (even if empty collections), return it
+    // This ensures we always show last known state when offline
+    if (baseData.gardens.length > 0 || baseData.tasks.length > 0 ||
+        baseData.notifications.length > 0 || baseData.activities.length > 0) {
+      console.log('Returning cached data with optimistic updates');
+
       // Sync in background if online
       if (this.isOnline && !this.isSyncing) {
         this.syncData(userId, { direction: 'down' }).catch(error => {
           console.warn('Background sync failed:', error);
         });
       }
-      return this.getOptimisticData();
+
+      return optimisticData;
     }
 
-    // If no local data and online, try to download
+    // If no local data but we're offline, still return optimistic data
+    // (might have optimistic creates)
+    if (!this.isOnline) {
+      console.log('Offline with no cached data - returning optimistic updates only');
+      return optimisticData;
+    }
+
+    // Only if online and no local data, try to download from server
     if (this.isOnline) {
-      const result = await this.syncData(userId, { direction: 'down' });
-      if (result.success && result.syncedData) {
-        return result.syncedData;
+      try {
+        console.log('No local data and online - downloading from server');
+        const result = await this.syncData(userId, { direction: 'down' });
+        if (result.success && result.syncedData) {
+          return result.syncedData;
+        }
+      } catch (error) {
+        console.warn('Failed to download initial data:', error);
       }
     }
 
-    // Return empty data as fallback
-    return {
+    // Final fallback - return optimistic data (might have creates) or empty
+    console.log('Returning fallback data');
+    return optimisticData.gardens.length > 0 || optimisticData.tasks.length > 0 ||
+           optimisticData.notifications.length > 0 || optimisticData.activities.length > 0 ?
+           optimisticData : {
       gardens: [],
       tasks: [],
       notifications: [],

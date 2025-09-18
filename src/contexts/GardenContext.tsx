@@ -530,6 +530,20 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const versionedGarden = prepareForOptimisticUpdate(newGarden, currentUser.uid);
       dispatch({ type: 'ADD_GARDEN', payload: versionedGarden });
 
+      // Create activity for garden creation
+      const activity = {
+        id: generateId(),
+        action: `Utworzono ogród "${versionedGarden.name}"`,
+        date: new Date(),
+        gardenId: versionedGarden.id,
+        version: 1,
+        lastModified: new Date(),
+        lastModifiedBy: currentUser.uid,
+        createdAt: new Date(),
+        createdBy: currentUser.uid
+      };
+      dispatch({ type: 'ADD_ACTIVITY', payload: activity });
+
       // Apply optimistic update
       optimisticUpdateService.applyOptimisticUpdate(
         'create',
@@ -587,10 +601,45 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     dispatch({ type: 'SELECT_GARDEN', payload: garden });
   }, []);
 
-  // Bed actions
+  // Bed actions with activity tracking
   const addBed = useCallback((gardenId: string, bed: Omit<Bed, 'id'>) => {
-    dispatch({ type: 'ADD_BED', payload: { gardenId, bed } });
-  }, []);
+    const newBed = {
+      ...bed,
+      id: generateId()
+    };
+
+    if (currentUser) {
+      const versionedBed = prepareForOptimisticUpdate(newBed, currentUser.uid);
+      dispatch({ type: 'ADD_BED', payload: { gardenId, bed: versionedBed } });
+
+      // Create activity for bed creation
+      const garden = state.gardens.find(g => g.id === gardenId);
+      const activity = {
+        id: generateId(),
+        action: `Utworzono grządkę "${versionedBed.name}"${garden ? ` w ogrodzie "${garden.name}"` : ''}`,
+        date: new Date(),
+        gardenId,
+        bedId: versionedBed.id,
+        version: 1,
+        lastModified: new Date(),
+        lastModifiedBy: currentUser.uid,
+        createdAt: new Date(),
+        createdBy: currentUser.uid
+      };
+      dispatch({ type: 'ADD_ACTIVITY', payload: activity });
+
+      // Apply optimistic update for bed
+      optimisticUpdateService.applyOptimisticUpdate(
+        'update',
+        'gardens',
+        gardenId,
+        { beds: [...(garden?.beds || []), versionedBed] },
+        garden
+      );
+    } else {
+      dispatch({ type: 'ADD_BED', payload: { gardenId, bed: newBed } });
+    }
+  }, [currentUser, state.gardens]);
 
   const updateBed = useCallback((gardenId: string, bed: Bed) => {
     dispatch({ type: 'UPDATE_BED', payload: { gardenId, bed } });
@@ -600,10 +649,47 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     dispatch({ type: 'DELETE_BED', payload: { gardenId, bedId } });
   }, []);
 
-  // Plant actions
+  // Plant actions with activity tracking
   const addPlant = useCallback((gardenId: string, bedId: string, plant: Omit<Plant, 'id'>) => {
-    dispatch({ type: 'ADD_PLANT', payload: { gardenId, bedId, plant } });
-  }, []);
+    const newPlant = {
+      ...plant,
+      id: generateId()
+    };
+
+    if (currentUser) {
+      const versionedPlant = prepareForOptimisticUpdate(newPlant, currentUser.uid);
+      dispatch({ type: 'ADD_PLANT', payload: { gardenId, bedId, plant: versionedPlant } });
+
+      // Create activity for plant creation
+      const garden = state.gardens.find(g => g.id === gardenId);
+      const bed = garden?.beds.find(b => b.id === bedId);
+      const activity = {
+        id: generateId(),
+        action: `Posadzono ${versionedPlant.name} ${versionedPlant.emoji}${bed ? ` na grządce "${bed.name}"` : ''}${garden ? ` w ogrodzie "${garden.name}"` : ''}`,
+        date: new Date(),
+        gardenId,
+        bedId,
+        plantId: versionedPlant.id,
+        version: 1,
+        lastModified: new Date(),
+        lastModifiedBy: currentUser.uid,
+        createdAt: new Date(),
+        createdBy: currentUser.uid
+      };
+      dispatch({ type: 'ADD_ACTIVITY', payload: activity });
+
+      // Apply optimistic update for plant
+      optimisticUpdateService.applyOptimisticUpdate(
+        'update',
+        'gardens',
+        gardenId,
+        garden,
+        garden
+      );
+    } else {
+      dispatch({ type: 'ADD_PLANT', payload: { gardenId, bedId, plant: newPlant } });
+    }
+  }, [currentUser, state.gardens]);
 
   const updatePlant = useCallback((gardenId: string, bedId: string, plant: Plant) => {
     dispatch({ type: 'UPDATE_PLANT', payload: { gardenId, bedId, plant } });
@@ -627,8 +713,42 @@ export const GardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const completeTask = useCallback((taskId: string, plantId?: string, bedId?: string) => {
+    const task = state.tasks.find(t => t.id === taskId);
     dispatch({ type: 'COMPLETE_TASK', payload: taskId });
-  }, []);
+
+    // Create activity for task completion
+    if (task && currentUser) {
+      const garden = state.gardens.find(g => g.id === task.gardenId);
+      const bed = garden?.beds.find(b => b.id === task.bedId);
+      const plant = bed?.plants.find(p => p.id === task.plantId);
+
+      let activityText = `Ukończono zadanie: ${task.title}`;
+      if (plant) {
+        activityText += ` dla rośliny ${plant.name} ${plant.emoji}`;
+      }
+      if (bed) {
+        activityText += ` na grządce "${bed.name}"`;
+      }
+      if (garden) {
+        activityText += ` w ogrodzie "${garden.name}"`;
+      }
+
+      const activity = {
+        id: generateId(),
+        action: activityText,
+        date: new Date(),
+        gardenId: task.gardenId,
+        bedId: task.bedId,
+        plantId: task.plantId,
+        version: 1,
+        lastModified: new Date(),
+        lastModifiedBy: currentUser.uid,
+        createdAt: new Date(),
+        createdBy: currentUser.uid
+      };
+      dispatch({ type: 'ADD_ACTIVITY', payload: activity });
+    }
+  }, [state.tasks, state.gardens, currentUser]);
 
   // Activity actions
   const addActivity = useCallback((activity: Omit<Activity, 'id'>) => {
