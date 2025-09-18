@@ -95,10 +95,9 @@ const GardenDashboard = ({ onGardenSelect }: GardenDashboardProps) => {
 
   const formatCurrentDate = () => {
     return currentDateTime.toLocaleDateString('pl-PL', {
-      weekday: 'long',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: '2-digit',
+      day: '2-digit'
     });
   };
 
